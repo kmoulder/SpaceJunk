@@ -1,0 +1,126 @@
+[gd_scene load_steps=4 format=3 uid="uid://main_scene"]
+
+[ext_resource type="Script" path="res://scripts/game/Main.gd" id="1_main"]
+[ext_resource type="Script" path="res://scripts/ui/HUD.gd" id="2_hud"]
+[ext_resource type="Script" path="res://scripts/ui/InventoryUI.gd" id="3_inventory"]
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="Background" type="ParallaxBackground" parent="."]
+
+[node name="GameWorld" type="Node2D" parent="."]
+
+[node name="DebrisLayer" type="Node2D" parent="GameWorld"]
+z_index = 50
+
+[node name="StationLayer" type="Node2D" parent="GameWorld"]
+
+[node name="FoundationTiles" type="Node2D" parent="GameWorld/StationLayer"]
+z_index = 0
+
+[node name="Buildings" type="Node2D" parent="GameWorld/StationLayer"]
+z_index = 20
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position_smoothing_enabled = true
+position_smoothing_speed = 5.0
+
+[node name="HUD" type="CanvasLayer" parent="."]
+layer = 10
+script = ExtResource("2_hud")
+
+[node name="HotbarPanel" type="PanelContainer" parent="HUD"]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -260.0
+offset_top = -70.0
+offset_right = 260.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="HotbarContainer" type="HBoxContainer" parent="HUD/HotbarPanel"]
+layout_mode = 2
+theme_override_constants/separation = 4
+alignment = 1
+
+[node name="ResourcePanel" type="VBoxContainer" parent="HUD"]
+anchors_preset = 0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 150.0
+offset_bottom = 150.0
+theme_override_constants/separation = 4
+
+[node name="CraftingProgress" type="ProgressBar" parent="HUD"]
+visible = false
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -100.0
+offset_top = 10.0
+offset_right = 100.0
+offset_bottom = 30.0
+grow_horizontal = 2
+value = 50.0
+show_percentage = false
+
+[node name="Tooltip" type="PanelContainer" parent="HUD"]
+visible = false
+offset_right = 100.0
+offset_bottom = 30.0
+
+[node name="Label" type="Label" parent="HUD/Tooltip"]
+layout_mode = 2
+text = "Tooltip"
+
+[node name="InventoryUI" type="CanvasLayer" parent="."]
+visible = false
+layer = 20
+script = ExtResource("3_inventory")
+
+[node name="Panel" type="PanelContainer" parent="InventoryUI"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -270.0
+offset_top = -180.0
+offset_right = 270.0
+offset_bottom = 180.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="InventoryUI/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TitleBar" type="HBoxContainer" parent="InventoryUI/Panel/VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="InventoryUI/Panel/VBox/TitleBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Inventory"
+horizontal_alignment = 1
+
+[node name="CloseButton" type="Button" parent="InventoryUI/Panel/VBox/TitleBar"]
+layout_mode = 2
+text = "X"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="InventoryUI/Panel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Grid" type="GridContainer" parent="InventoryUI/Panel/VBox/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/h_separation = 4
+theme_override_constants/v_separation = 4
+columns = 10
