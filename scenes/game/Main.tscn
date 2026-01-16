@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://main_scene"]
+[gd_scene load_steps=8 format=3 uid="uid://main_scene"]
 
 [ext_resource type="Script" path="res://scripts/csharp/Main.cs" id="1_main"]
 [ext_resource type="Script" path="res://scripts/csharp/HUD.cs" id="2_hud"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://scripts/csharp/BuildMenuUI.cs" id="4_buildmenu"]
 [ext_resource type="Script" path="res://scripts/csharp/BuildingUI.cs" id="5_buildingui"]
 [ext_resource type="Script" path="res://scripts/csharp/ResearchUI.cs" id="6_researchui"]
+[ext_resource type="Script" path="res://scripts/csharp/RecipeUI.cs" id="7_recipeui"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_main")
@@ -142,3 +143,8 @@ script = ExtResource("5_buildingui")
 visible = false
 layer = 19
 script = ExtResource("6_researchui")
+
+[node name="RecipeUI" type="CanvasLayer" parent="."]
+visible = false
+layer = 17
+script = ExtResource("7_recipeui")

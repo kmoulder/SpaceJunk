@@ -45,6 +45,9 @@ public partial class Main : Node2D
     [Export]
     public ResearchUI ResearchUi { get; set; }
 
+    [Export]
+    public RecipeUI RecipeUi { get; set; }
+
     // Camera movement
     private Vector2 _cameraTargetPosition = Vector2.Zero;
     private float _cameraZoomTarget = 1.0f;
@@ -72,6 +75,7 @@ public partial class Main : Node2D
         BuildMenuUi ??= GetNodeOrNull<BuildMenuUI>("BuildMenuUI");
         BuildingUi ??= GetNodeOrNull<BuildingUI>("BuildingUI");
         ResearchUi ??= GetNodeOrNull<ResearchUI>("ResearchUI");
+        RecipeUi ??= GetNodeOrNull<RecipeUI>("RecipeUI");
 
         GD.Print($"[Main] Camera: {Camera != null}, Background: {Background != null}, GameWorld: {GameWorld != null}");
         GD.Print($"[Main] Hud: {Hud != null}, InventoryUi: {InventoryUi != null}, BuildMenuUi: {BuildMenuUi != null}");
@@ -466,6 +470,8 @@ public partial class Main : Node2D
         if (BuildMenuUi != null && BuildMenuUi.Visible)
             return true;
         if (ResearchUi != null && ResearchUi.Visible)
+            return true;
+        if (RecipeUi != null && RecipeUi.Visible)
             return true;
         return false;
     }
