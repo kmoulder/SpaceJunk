@@ -2,38 +2,41 @@
 
 This document provides everything needed to continue development from Phase 2 to Phase 3.
 
+**Note:** The codebase was converted from GDScript to C# for better tooling, type safety, and performance.
+
 ## Quick Start
 
 1. Open project in Godot 4.5
-2. Run `scenes/game/Main.tscn`
-3. Press 'B' to open the build menu
-4. Select a building and click to place
-5. Press 'R' to rotate while placing
-6. Right-click to remove buildings
-7. Review `ROADMAP.md` for Phase 3 tasks
+2. Build the C# solution: `dotnet build` in project root
+3. Run `scenes/game/Main.tscn`
+4. Press 'B' to open the build menu
+5. Select a building and click to place
+6. Press 'R' to rotate while placing
+7. Right-click to remove buildings
+8. Review `ROADMAP.md` for Phase 3 tasks
 
 ---
 
 ## What's Been Built (Phase 1 + Phase 2)
 
 ### Core Architecture
-All systems use **autoload singletons** configured in `project.godot`. Access them globally:
-- `GameManager` - Game state, tick system (60 ticks/sec), pause
-- `GridManager` - Station grid, building placement validation
-- `InventoryManager` - Player inventory, item registry
-- `CraftingManager` - Recipe registry, hand-crafting queue
-- `DebrisManager` - Debris spawning and collection
-- `ResearchManager` - Tech tree (ready but no UI)
-- `PowerManager` - Power network simulation
-- `BuildingManager` - Building registry, placement, removal (NEW)
+All systems use **autoload singletons** configured in `project.godot`. Access them via static `Instance` property:
+- `GameManager.Instance` - Game state, tick system (60 ticks/sec), pause
+- `GridManager.Instance` - Station grid, building placement validation
+- `InventoryManager.Instance` - Player inventory, item registry
+- `CraftingManager.Instance` - Recipe registry, hand-crafting queue
+- `DebrisManager.Instance` - Debris spawning and collection
+- `ResearchManager.Instance` - Tech tree (ready but no UI)
+- `PowerManager.Instance` - Power network simulation
+- `BuildingManager.Instance` - Building registry, placement, removal
 
 ### Phase 2 Additions
 
 #### Building System
-- **BuildingEntity** (`scripts/entities/BuildingEntity.gd`) - Base class for all buildings
+- **BuildingEntity** (`scripts/csharp/BuildingEntity.cs`) - Base class for all buildings
   - Grid positioning and rotation
   - Power network integration (auto-registers with PowerManager)
-  - Tick-based processing via `_process_building()`
+  - Tick-based processing via `ProcessBuilding()`
   - Internal inventory support for storage buildings
   - Insert/extract item methods for inserter compatibility
 
@@ -48,7 +51,7 @@ All systems use **autoload singletons** configured in `project.godot`. Access th
 | Solar Panel | 2x2 | Power generation (requires research) |
 
 #### BuildingManager Singleton
-- Building registry with `get_building(id)` and `get_all_buildings()`
+- Building registry with `GetBuilding(id)` and `GetAllBuildings()`
 - Build mode with ghost preview
 - Placement validation (foundation + resource cost)
 - Building removal with full refund
@@ -73,46 +76,46 @@ All systems use **autoload singletons** configured in `project.godot`. Access th
 
 | File | What It Does |
 |------|--------------|
-| `scripts/entities/BuildingEntity.gd` | Base class for all buildings |
-| `scripts/entities/StoneFurnace.gd` | Furnace with fuel/input/output slots |
-| `scripts/entities/SmallChest.gd` | Storage with 16 inventory slots |
-| `scripts/entities/ConveyorBelt.gd` | Item transport with auto-connection |
-| `scripts/entities/Inserter.gd` | Item transfer with swing animation |
-| `scripts/systems/BuildingManager.gd` | Building placement and registry |
-| `scripts/ui/BuildMenuUI.gd` | Build menu interface |
+| `scripts/csharp/BuildingEntity.cs` | Base class for all buildings |
+| `scripts/csharp/StoneFurnace.cs` | Furnace with fuel/input/output slots |
+| `scripts/csharp/SmallChest.cs` | Storage with 16 inventory slots |
+| `scripts/csharp/ConveyorBelt.cs` | Item transport with auto-connection |
+| `scripts/csharp/Inserter.cs` | Item transfer with swing animation |
+| `scripts/csharp/BuildingManager.cs` | Building placement and registry |
+| `scripts/csharp/BuildMenuUI.cs` | Build menu interface |
 
 ---
 
 ## How Buildings Work
 
 ### Furnace Processing
-```gdscript
-# StoneFurnace has three special slots:
-var fuel_slot: ItemStack      # Coal goes here
-var input_slot: ItemStack     # Ore goes here
-var output_slot: ItemStack    # Plates come out here
+```csharp
+// StoneFurnace has three special slots:
+private ItemStack _fuelSlot;      // Coal goes here
+private ItemStack _inputSlot;     // Ore goes here
+private ItemStack _outputSlot;    // Plates come out here
 
-# Furnace automatically:
-# 1. Finds matching recipe for input ore
-# 2. Consumes fuel to maintain burn time
-# 3. Progresses crafting each tick
-# 4. Outputs result when complete
+// Furnace automatically:
+// 1. Finds matching recipe for input ore
+// 2. Consumes fuel to maintain burn time
+// 3. Progresses crafting each tick
+// 4. Outputs result when complete
 ```
 
 ### Belt Item Movement
-```gdscript
-# ConveyorBelt moves items at Constants.BELT_SPEED_TIER_1 (1 tile/sec)
-# Items have progress 0.0 -> 1.0 along belt
-# Belts auto-connect to adjacent belts facing the same way
-# Items transfer when progress >= 1.0 and next belt is empty
+```csharp
+// ConveyorBelt moves items at Constants.BeltSpeedTier1 (1 tile/sec)
+// Items have progress 0.0 -> 1.0 along belt
+// Belts auto-connect to adjacent belts facing the same way
+// Items transfer when progress >= 1.0 and next belt is empty
 ```
 
 ### Inserter Logic
-```gdscript
-# Inserter picks from BEHIND (opposite of facing direction)
-# and drops IN FRONT (facing direction)
-# Swing takes Constants.INSERTER_SWING_TIME seconds
-# Will only pick up if destination can accept item
+```csharp
+// Inserter picks from BEHIND (opposite of facing direction)
+// and drops IN FRONT (facing direction)
+// Swing takes Constants.InserterSwingTime seconds
+// Will only pick up if destination can accept item
 ```
 
 ---
@@ -157,29 +160,36 @@ var output_slot: ItemStack    # Plates come out here
 
 ### Signal-Based Architecture
 ```
-BuildingManager.building_placed → GridManager stores reference
-BuildingManager.building_removed → GridManager removes reference
-BuildingEntity._ready() → registers with PowerManager
-BuildingEntity.on_removed() → unregisters from PowerManager
-GameManager.game_tick → all buildings process via _on_game_tick()
+BuildingManager.BuildingPlaced → GridManager stores reference
+BuildingManager.BuildingRemoved → GridManager removes reference
+BuildingEntity._Ready() → registers with PowerManager
+BuildingEntity.OnRemoved() → unregisters from PowerManager
+GameManager.GameTick → all buildings process via OnGameTick()
 ```
 
 ### Building Tick Processing
-```gdscript
-# Buildings hook into game tick automatically:
-func _ready() -> void:
-    GameManager.game_tick.connect(_on_game_tick)
+```csharp
+// Buildings hook into game tick automatically:
+public override void _Ready()
+{
+    base._Ready();
+    if (GameManager.Instance != null)
+        GameManager.Instance.GameTick += OnGameTick;
+}
 
-func _on_game_tick(tick: int) -> void:
-    if not is_powered:
-        return
-    _process_building()  # Override this
+private void OnGameTick(int tick)
+{
+    if (!IsPowered)
+        return;
+    ProcessBuilding();  // Override this
+}
 
-func _process_building() -> void:
-    # Furnace: check recipe, consume fuel, progress crafting
-    # Belt: move items, transfer to next belt
-    # Inserter: swing arm, pick up, drop items
-    pass
+protected virtual void ProcessBuilding()
+{
+    // Furnace: check recipe, consume fuel, progress crafting
+    // Belt: move items, transfer to next belt
+    // Inserter: swing arm, pick up, drop items
+}
 ```
 
 ---
@@ -187,12 +197,12 @@ func _process_building() -> void:
 ## Sprite Generation Reference
 
 New building sprites in SpriteGenerator:
-```gdscript
-SpriteGenerator.generate_furnace(is_electric: bool) -> ImageTexture  # 64x64 (2x2)
-SpriteGenerator.generate_chest(color: Color) -> ImageTexture          # 32x32 (1x1)
-SpriteGenerator.generate_belt(direction: Enums.Direction) -> ImageTexture  # 32x32
-SpriteGenerator.generate_inserter(is_long: bool) -> ImageTexture      # 32x32
-SpriteGenerator.generate_solar_panel() -> ImageTexture                # 64x64 (2x2)
+```csharp
+SpriteGenerator.Instance.GenerateFurnace(bool isElectric)  // 64x64 (2x2)
+SpriteGenerator.Instance.GenerateChest(Color color)        // 32x32 (1x1)
+SpriteGenerator.Instance.GenerateBelt(Enums.Direction dir) // 32x32
+SpriteGenerator.Instance.GenerateInserter(bool isLong)     // 32x32
+SpriteGenerator.Instance.GenerateSolarPanel()              // 64x64 (2x2)
 ```
 
 ---
@@ -216,7 +226,7 @@ SpriteGenerator.generate_solar_panel() -> ImageTexture                # 64x64 (2
 ## Testing Checklist
 
 Before starting Phase 3 work, verify:
-- [ ] Game runs without errors
+- [ ] Game runs without errors (build with `dotnet build` first)
 - [ ] Press B opens build menu
 - [ ] Can place Stone Furnace (costs 5 stone)
 - [ ] Can place Small Chest (costs 2 iron plates)
@@ -232,30 +242,79 @@ Before starting Phase 3 work, verify:
 ## File Quick Reference
 
 ```
-scenes/game/Main.tscn              - Main game scene
-scripts/game/Main.gd               - Main scene logic + building integration
-scripts/core/GameManager.gd        - Game state singleton
-scripts/core/GridManager.gd        - Grid/building singleton
-scripts/core/SpriteGenerator.gd    - Procedural sprites
-scripts/systems/BuildingManager.gd - Building placement (NEW)
-scripts/systems/*.gd               - All manager singletons
-scripts/entities/BuildingEntity.gd - Building base class (NEW)
-scripts/entities/StoneFurnace.gd   - Furnace building (NEW)
-scripts/entities/SmallChest.gd     - Chest building (NEW)
-scripts/entities/ConveyorBelt.gd   - Belt building (NEW)
-scripts/entities/Inserter.gd       - Inserter building (NEW)
-scripts/ui/BuildMenuUI.gd          - Build menu (NEW)
-scripts/ui/HUD.gd                  - Hotbar and resource display
-scripts/ui/InventoryUI.gd          - Inventory panel
-scripts/data/*.gd                  - Enums, Constants, ItemStack
-resources/*/*.gd                   - Resource class definitions
+scenes/game/Main.tscn                - Main game scene
+scripts/csharp/Main.cs               - Main scene logic + building integration
+scripts/csharp/GameManager.cs        - Game state singleton
+scripts/csharp/GridManager.cs        - Grid/building singleton
+scripts/csharp/SpriteGenerator.cs    - Procedural sprites
+scripts/csharp/BuildingManager.cs    - Building placement
+scripts/csharp/InventoryManager.cs   - Player inventory
+scripts/csharp/CraftingManager.cs    - Recipes and crafting
+scripts/csharp/DebrisManager.cs      - Debris spawning
+scripts/csharp/ResearchManager.cs    - Tech tree
+scripts/csharp/PowerManager.cs       - Power networks
+scripts/csharp/BuildingEntity.cs     - Building base class
+scripts/csharp/StoneFurnace.cs       - Furnace building
+scripts/csharp/SmallChest.cs         - Chest building
+scripts/csharp/ConveyorBelt.cs       - Belt building
+scripts/csharp/Inserter.cs           - Inserter building
+scripts/csharp/HUD.cs                - Hotbar and resource display
+scripts/csharp/InventoryUI.cs        - Inventory panel
+scripts/csharp/BuildMenuUI.cs        - Build menu
+scripts/csharp/BuildingUI.cs         - Building interaction UI
+scripts/csharp/Enums.cs              - Game enums
+scripts/csharp/Constants.cs          - Game constants
+scripts/csharp/ItemStack.cs          - Item stack class
+scripts/csharp/ItemResource.cs       - Item definition resource
+scripts/csharp/RecipeResource.cs     - Recipe definition resource
+scripts/csharp/TechnologyResource.cs - Technology definition resource
+scripts/csharp/BuildingResource.cs   - Building definition resource
+```
+
+---
+
+## C# Conversion Notes
+
+The codebase was converted from GDScript to C# with these patterns:
+
+### Singleton Access
+```csharp
+// Access autoload singletons via static Instance property
+var item = InventoryManager.Instance?.GetItem("iron_ore");
+GridManager.Instance?.PlaceBuilding(pos, building);
+```
+
+### No Namespaces
+C# files do NOT use namespaces (Godot autoload discovery issue). Classes are defined at global scope with `// SpaceFactory` comment.
+
+### Node References
+C# exported properties with NodePath don't auto-resolve. Nodes are fetched manually in `_Ready()`:
+```csharp
+public override void _Ready()
+{
+    Camera ??= GetNodeOrNull<Camera2D>("Camera2D");
+    Hud ??= GetNodeOrNull<HUD>("HUD");
+}
+```
+
+### Signals
+C# signals use delegate naming convention:
+```csharp
+[Signal]
+public delegate void BuildingPlacedEventHandler(BuildingEntity building);
+
+// Emit
+EmitSignal(SignalName.BuildingPlaced, building);
+
+// Connect
+BuildingManager.Instance.BuildingPlaced += OnBuildingPlaced;
 ```
 
 ---
 
 ## Starter Items for Testing
 
-The game now gives more starting items for testing Phase 2:
+The game gives starting items for testing Phase 2:
 - 50 Iron Ore
 - 30 Copper Ore
 - 20 Coal

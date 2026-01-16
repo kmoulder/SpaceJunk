@@ -2,70 +2,73 @@
 
 ## Overview
 
-This document describes the technical architecture for Space Factory, built in Godot 4.5 using GDScript.
+This document describes the technical architecture for Space Factory, built in Godot 4.5 using **C#**.
+
+> **Note:** The codebase was converted from GDScript to C# for performance reasons. All scripts are now in `scripts/csharp/`.
 
 ## Implementation Status (Phase 2 Complete)
 
-### Implemented Files - Core
+### Implemented Files - Core (C#)
 | File | Status | Notes |
 |------|--------|-------|
-| `scripts/core/GameManager.gd` | Complete | Game state, ticks, pause |
-| `scripts/core/GridManager.gd` | Complete | Grid coords, foundation tracking |
-| `scripts/core/SpriteGenerator.gd` | Complete | All procedural sprite generation |
-| `scripts/data/Enums.gd` | Complete | All game enumerations |
-| `scripts/data/Constants.gd` | Complete | Game constants and colors |
-| `scripts/data/ItemStack.gd` | Complete | Stack data class |
+| `scripts/csharp/GameManager.cs` | Complete | Game state, ticks, pause |
+| `scripts/csharp/GridManager.cs` | Complete | Grid coords, foundation tracking |
+| `scripts/csharp/SpriteGenerator.cs` | Complete | All procedural sprite generation |
+| `scripts/csharp/Enums.cs` | Complete | All game enumerations |
+| `scripts/csharp/Constants.cs` | Complete | Game constants and colors |
+| `scripts/csharp/ItemStack.cs` | Complete | Stack data class |
 
 ### Implemented Files - Systems (Autoload Singletons)
 | File | Status | Notes |
 |------|--------|-------|
-| `scripts/systems/InventoryManager.gd` | Complete | Full inventory with item registry |
-| `scripts/systems/DebrisManager.gd` | Complete | Spawning, drifting, collection |
-| `scripts/systems/CraftingManager.gd` | Complete | Recipe registry, hand-craft queue |
-| `scripts/systems/ResearchManager.gd` | Complete | Tech tree, research progress |
-| `scripts/systems/PowerManager.gd` | Complete | Power network simulation |
-| `scripts/systems/BuildingManager.gd` | Complete | Building registry, placement, removal |
+| `scripts/csharp/InventoryManager.cs` | Complete | Full inventory with item registry |
+| `scripts/csharp/DebrisManager.cs` | Complete | Spawning, drifting, collection |
+| `scripts/csharp/CraftingManager.cs` | Complete | Recipe registry, hand-craft queue |
+| `scripts/csharp/ResearchManager.cs` | Complete | Tech tree, research progress |
+| `scripts/csharp/PowerManager.cs` | Complete | Power network simulation |
+| `scripts/csharp/BuildingManager.cs` | Complete | Building registry, placement, removal |
 
 ### Implemented Files - Entities
 | File | Status | Notes |
 |------|--------|-------|
-| `scripts/entities/BuildingEntity.gd` | Complete | Base class for all buildings |
-| `scripts/entities/DebrisEntity.gd` | Complete | Debris with drift movement |
-| `scripts/entities/StoneFurnace.gd` | Complete | 2x2 furnace with fuel/input/output |
-| `scripts/entities/SmallChest.gd` | Complete | 1x1 storage with 16 slots |
-| `scripts/entities/ConveyorBelt.gd` | Complete | 1x1 belt with item transport |
-| `scripts/entities/Inserter.gd` | Complete | 1x1 item transfer with swing |
+| `scripts/csharp/BuildingEntity.cs` | Complete | Base class for all buildings |
+| `scripts/csharp/DebrisEntity.cs` | Complete | Debris with drift movement |
+| `scripts/csharp/StoneFurnace.cs` | Complete | 2x2 furnace with fuel/input/output |
+| `scripts/csharp/SmallChest.cs` | Complete | 1x1 storage with 16 slots |
+| `scripts/csharp/ConveyorBelt.cs` | Complete | 1x1 belt with item transport |
+| `scripts/csharp/Inserter.cs` | Complete | 1x1 item transfer with swing |
 
 ### Implemented Files - UI
 | File | Status | Notes |
 |------|--------|-------|
-| `scripts/ui/HUD.gd` | Complete | Hotbar, resource display |
-| `scripts/ui/InventoryUI.gd` | Complete | 40-slot inventory grid |
-| `scripts/ui/BuildMenuUI.gd` | Complete | Building selection by category |
+| `scripts/csharp/HUD.cs` | Complete | Hotbar, resource display |
+| `scripts/csharp/InventoryUI.cs` | Complete | 40-slot inventory grid |
+| `scripts/csharp/BuildMenuUI.cs` | Complete | Building selection by category |
+| `scripts/csharp/BuildingUI.cs` | Complete | Building interaction panel |
 
 ### Implemented Files - Resources
 | File | Status | Notes |
 |------|--------|-------|
-| `resources/items/ItemResource.gd` | Complete | Item resource class |
-| `resources/recipes/RecipeResource.gd` | Complete | Recipe resource class |
-| `resources/buildings/BuildingResource.gd` | Complete | Building resource class |
-| `resources/research/TechnologyResource.gd` | Complete | Technology resource class |
+| `scripts/csharp/ItemResource.cs` | Complete | Item resource class |
+| `scripts/csharp/RecipeResource.cs` | Complete | Recipe resource class |
+| `scripts/csharp/BuildingResource.cs` | Complete | Building resource class |
+| `scripts/csharp/TechnologyResource.cs` | Complete | Technology resource class |
 
 ### Implemented Files - Game
 | File | Status | Notes |
 |------|--------|-------|
-| `scripts/game/Main.gd` | Complete | Main scene controller |
+| `scripts/csharp/Main.cs` | Complete | Main scene controller |
 | `scenes/game/Main.tscn` | Complete | Main game scene |
 
 ### Not Yet Implemented (Phase 3+)
 | File | Phase | Notes |
 |------|-------|-------|
-| `scripts/core/SaveManager.gd` | Phase 5 | Save/load system |
-| `scripts/ui/CraftingUI.gd` | Deferred | Hand-craft UI panel |
-| `scripts/ui/ResearchUI.gd` | Phase 3 | Tech tree UI |
-| `scripts/entities/Assembler.gd` | Phase 3 | Multi-ingredient crafting |
-| `scripts/entities/Lab.gd` | Phase 3 | Science pack consumer |
-| `scripts/entities/DebrisCollector.gd` | Phase 3 | Auto debris collection |
+| `scripts/csharp/SaveManager.cs` | Phase 5 | Save/load system |
+| `scripts/csharp/CraftingUI.cs` | Deferred | Hand-craft UI panel |
+| `scripts/csharp/ResearchUI.cs` | Phase 3 | Tech tree UI |
+| `scripts/csharp/Assembler.cs` | Phase 3 | Multi-ingredient crafting |
+| `scripts/csharp/Lab.cs` | Phase 3 | Science pack consumer |
+| `scripts/csharp/DebrisCollector.cs` | Phase 3 | Auto debris collection |
 
 ---
 
@@ -73,37 +76,38 @@ This document describes the technical architecture for Space Factory, built in G
 
 1. **Data-Driven Design**: Items, recipes, and buildings defined as Resources
 2. **Component-Based Entities**: Buildings composed of reusable components
-3. **Signal-Based Communication**: Loose coupling via Godot signals
-4. **Singleton Managers**: Global systems accessible via autoload
+3. **Signal-Based Communication**: Loose coupling via C# delegates/events
+4. **Singleton Managers**: Global systems accessible via autoload with static Instance
 5. **Separation of Concerns**: Logic, data, and presentation separated
 
 ---
 
 ## Core Systems
 
-### 1. Game Manager (`GameManager.gd`)
+### 1. Game Manager (`GameManager.cs`)
 **Autoload Singleton**
 
 Responsibilities:
 - Game state management (playing, paused, menu)
 - Save/load coordination
 - Global game settings
-- Time management (game tick rate)
+- Time management (game tick rate at 60 ticks/sec)
 
-```gdscript
-# Signals
-signal game_paused
-signal game_resumed
-signal game_saved
-signal game_loaded
+```csharp
+// Signals (C# delegates)
+[Signal] public delegate void GameTickEventHandler(int tick);
+[Signal] public delegate void GameStateChangedEventHandler(Enums.GameState newState, Enums.GameState oldState);
+[Signal] public delegate void GamePausedEventHandler();
+[Signal] public delegate void GameResumedEventHandler();
 
-# Properties
-var game_speed: float = 1.0
-var is_paused: bool = false
-var current_tick: int = 0
+// Properties
+public static GameManager Instance { get; private set; }
+public float GameSpeed { get; set; } = 1.0f;
+public bool IsPaused { get; private set; } = false;
+public int CurrentTick { get; private set; } = 0;
 ```
 
-### 2. Grid System (`GridManager.gd`)
+### 2. Grid System (`GridManager.cs`)
 **Autoload Singleton**
 
 Responsibilities:
@@ -112,52 +116,51 @@ Responsibilities:
 - Building position lookup
 - Grid coordinate conversion
 
-```gdscript
-# Constants
-const TILE_SIZE = 32
+```csharp
+// Signals
+[Signal] public delegate void FoundationAddedEventHandler(Vector2I pos);
+[Signal] public delegate void FoundationRemovedEventHandler(Vector2I pos);
+[Signal] public delegate void BuildingPlacedEventHandler(Vector2I pos, Node2D building);
+[Signal] public delegate void BuildingRemovedEventHandler(Vector2I pos);
 
-# Data
-var foundation_tiles: Dictionary = {}  # Vector2i -> bool
-var buildings: Dictionary = {}  # Vector2i -> BuildingEntity
-
-# Methods
-func can_place_building(pos: Vector2i, building_def: BuildingResource) -> bool
-func place_building(pos: Vector2i, building_def: BuildingResource) -> BuildingEntity
-func remove_building(pos: Vector2i) -> void
-func world_to_grid(world_pos: Vector2) -> Vector2i
-func grid_to_world(grid_pos: Vector2i) -> Vector2
+// Methods
+public bool CanPlaceBuilding(Vector2I pos, BuildingResource building)
+public bool HasFoundation(Vector2I pos)
+public bool HasBuilding(Vector2I pos)
+public Node2D GetBuilding(Vector2I pos)
+public Vector2I WorldToGrid(Vector2 worldPos)
+public Vector2 GridToWorld(Vector2I gridPos)
 ```
 
-### 3. Inventory System (`InventoryManager.gd`)
+### 3. Inventory System (`InventoryManager.cs`)
 **Autoload Singleton**
 
 Responsibilities:
 - Player inventory management
+- Item registry
 - Stack handling
 - Item transfer between inventories
 
-```gdscript
-# Signals
-signal inventory_changed
-signal item_added(item: ItemResource, count: int)
-signal item_removed(item: ItemResource, count: int)
+```csharp
+// Signals
+[Signal] public delegate void InventoryChangedEventHandler();
+[Signal] public delegate void HotbarChangedEventHandler();
+[Signal] public delegate void ItemAddedEventHandler(ItemResource item, int count, int slotIndex);
+[Signal] public delegate void ItemRemovedEventHandler(ItemResource item, int count, int slotIndex);
 
-# Data Structure
-class InventorySlot:
-    var item: ItemResource
-    var count: int
+// Properties
+public Array<ItemStack> Inventory { get; private set; }
+public Array<ItemStack> Hotbar { get; private set; }
 
-var player_inventory: Array[InventorySlot]
-var hotbar: Array[InventorySlot]
-
-# Methods
-func add_item(item: ItemResource, count: int = 1) -> int  # Returns overflow
-func remove_item(item: ItemResource, count: int = 1) -> bool
-func has_item(item: ItemResource, count: int = 1) -> bool
-func get_item_count(item: ItemResource) -> int
+// Methods
+public int AddItem(ItemResource item, int count = 1)  // Returns overflow
+public bool RemoveItem(ItemResource item, int count = 1)
+public bool HasItem(ItemResource item, int count = 1)
+public int GetItemCount(ItemResource item)
+public ItemResource GetItem(string itemId)
 ```
 
-### 4. Crafting System (`CraftingManager.gd`)
+### 4. Crafting System (`CraftingManager.cs`)
 **Autoload Singleton**
 
 Responsibilities:
@@ -165,18 +168,21 @@ Responsibilities:
 - Crafting execution
 - Queue management
 
-```gdscript
-# Signals
-signal craft_started(recipe: RecipeResource)
-signal craft_completed(recipe: RecipeResource)
+```csharp
+// Signals
+[Signal] public delegate void CraftStartedEventHandler(RecipeResource recipe);
+[Signal] public delegate void CraftProgressChangedEventHandler(RecipeResource recipe, float progress);
+[Signal] public delegate void CraftCompletedEventHandler(RecipeResource recipe);
+[Signal] public delegate void QueueChangedEventHandler();
 
-# Methods
-func can_craft(recipe: RecipeResource) -> bool
-func craft(recipe: RecipeResource) -> bool
-func get_available_recipes() -> Array[RecipeResource]
+// Methods
+public bool CanCraft(RecipeResource recipe)
+public bool QueueCraft(RecipeResource recipe, int count = 1)
+public RecipeResource GetRecipe(string recipeId)
+public Array<RecipeResource> GetAllRecipes()
 ```
 
-### 5. Research System (`ResearchManager.gd`)
+### 5. Research System (`ResearchManager.cs`)
 **Autoload Singleton**
 
 Responsibilities:
@@ -184,26 +190,24 @@ Responsibilities:
 - Research progress tracking
 - Unlocks management
 
-```gdscript
-# Signals
-signal research_started(tech: TechnologyResource)
-signal research_progress(tech: TechnologyResource, progress: float)
-signal research_completed(tech: TechnologyResource)
-signal technology_unlocked(tech: TechnologyResource)
+```csharp
+// Signals
+[Signal] public delegate void ResearchStartedEventHandler(TechnologyResource tech);
+[Signal] public delegate void ResearchProgressEventHandler(TechnologyResource tech, float progress);
+[Signal] public delegate void ResearchCompletedEventHandler(TechnologyResource tech);
+[Signal] public delegate void TechnologyUnlockedEventHandler(TechnologyResource tech);
 
-# Data
-var unlocked_technologies: Array[TechnologyResource]
-var current_research: TechnologyResource
-var research_progress: float
+// Properties
+public TechnologyResource CurrentResearch { get; private set; }
+public float ResearchProgress { get; private set; }
 
-# Methods
-func start_research(tech: TechnologyResource) -> bool
-func add_science(pack_type: String, count: int) -> void
-func is_unlocked(tech: TechnologyResource) -> bool
-func get_available_research() -> Array[TechnologyResource]
+// Methods
+public bool StartResearch(TechnologyResource tech)
+public bool IsTechnologyUnlocked(string techId)
+public Array<TechnologyResource> GetAvailableResearch()
 ```
 
-### 6. Debris System (`DebrisManager.gd`)
+### 6. Debris System (`DebrisManager.cs`)
 **Autoload Singleton**
 
 Responsibilities:
@@ -212,23 +216,17 @@ Responsibilities:
 - Handle debris collection
 - Despawn off-screen debris
 
-```gdscript
-# Signals
-signal debris_spawned(debris: DebrisEntity)
-signal debris_collected(debris: DebrisEntity, collector: Node)
-signal debris_despawned(debris: DebrisEntity)
+```csharp
+// Signals
+[Signal] public delegate void DebrisSpawnedEventHandler(DebrisEntity debris);
+[Signal] public delegate void DebrisCollectedEventHandler(DebrisEntity debris);
 
-# Configuration
-var spawn_rate: float = 2.5  # seconds between spawns
-var spawn_variance: float = 1.0
-var drift_speed_range: Vector2 = Vector2(20, 60)
-
-# Methods
-func spawn_debris() -> DebrisEntity
-func collect_debris(debris: DebrisEntity) -> Array[ItemStack]
+// Methods
+public void SetDebrisContainer(Node2D container)
+public void SpawnDebris()
 ```
 
-### 7. Power System (`PowerManager.gd`)
+### 7. Power System (`PowerManager.cs`)
 **Autoload Singleton**
 
 Responsibilities:
@@ -236,107 +234,118 @@ Responsibilities:
 - Manage power network
 - Handle brownouts
 
-```gdscript
-# Signals
-signal power_changed(production: float, consumption: float)
-signal brownout_started
-signal brownout_ended
+```csharp
+// Signals
+[Signal] public delegate void PowerChangedEventHandler(float production, float consumption);
+[Signal] public delegate void BrownoutStartedEventHandler();
+[Signal] public delegate void BrownoutEndedEventHandler();
 
-# Properties
-var total_production: float
-var total_consumption: float
-var satisfaction: float  # 0.0 to 1.0
+// Properties
+public float TotalProduction { get; private set; }
+public float TotalConsumption { get; private set; }
+public float Satisfaction { get; private set; }  // 0.0 to 1.0
 
-# Methods
-func register_producer(building: BuildingEntity, output: float) -> void
-func register_consumer(building: BuildingEntity, input: float) -> void
-func get_power_satisfaction() -> float
+// Methods
+public void RegisterProducer(BuildingEntity building)
+public void UnregisterProducer(BuildingEntity building)
+public void RegisterConsumer(BuildingEntity building)
+public void UnregisterConsumer(BuildingEntity building)
+```
+
+### 8. Building Manager (`BuildingManager.cs`)
+**Autoload Singleton**
+
+Responsibilities:
+- Building registry
+- Build mode and ghost preview
+- Placement validation and execution
+- Building removal
+
+```csharp
+// Signals
+[Signal] public delegate void BuildModeChangedEventHandler(bool enabled, BuildingResource building);
+[Signal] public delegate void BuildingPlacedEventHandler(Vector2I pos, Node2D building);
+[Signal] public delegate void BuildingRemovedEventHandler(Vector2I pos);
+
+// Properties
+public Node2D BuildingsLayer { get; set; }
+
+// Methods
+public void EnterBuildMode(BuildingResource building)
+public void ExitBuildMode()
+public bool IsInBuildMode()
+public void RotatePlacementCw()
+public void UpdateGhostPosition(Vector2I gridPos)
+public bool TryPlaceBuilding(Vector2I gridPos)
+public void RemoveBuilding(Vector2I gridPos)
+public BuildingResource GetBuilding(string buildingId)
+public Array<BuildingResource> GetBuildingsByCategory(Enums.BuildingCategory category)
 ```
 
 ---
 
 ## Resource Definitions
 
-### ItemResource (`resources/items/ItemResource.gd`)
-```gdscript
-class_name ItemResource
-extends Resource
-
-@export var id: String
-@export var name: String
-@export var description: String
-@export var icon: Texture2D
-@export var stack_size: int = 100
-@export var category: ItemCategory
-
-enum ItemCategory {
-    RAW_MATERIAL,
-    PROCESSED,
-    COMPONENT,
-    BUILDING,
-    SCIENCE,
-    FLUID
+### ItemResource (`ItemResource.cs`)
+```csharp
+public partial class ItemResource : Resource
+{
+    [Export] public string Id { get; set; }
+    [Export] public string Name { get; set; }
+    [Export] public string Description { get; set; }
+    [Export] public int StackSize { get; set; } = 100;
+    [Export] public Enums.ItemCategory Category { get; set; }
+    [Export] public Color SpriteColor { get; set; } = Colors.White;
+    [Export] public bool IsFluid { get; set; } = false;
 }
 ```
 
-### RecipeResource (`resources/recipes/RecipeResource.gd`)
-```gdscript
-class_name RecipeResource
-extends Resource
-
-@export var id: String
-@export var name: String
-@export var ingredients: Array[ItemStack]
-@export var results: Array[ItemStack]
-@export var crafting_time: float  # seconds
-@export var category: RecipeCategory
-@export var required_building: String  # "hand", "assembler", "furnace", etc.
-@export var unlocked_by: TechnologyResource
-
-class ItemStack:
-    var item: ItemResource
-    var count: int
-```
-
-### BuildingResource (`resources/buildings/BuildingResource.gd`)
-```gdscript
-class_name BuildingResource
-extends Resource
-
-@export var id: String
-@export var name: String
-@export var description: String
-@export var size: Vector2i  # grid size
-@export var power_consumption: float  # kW
-@export var power_production: float  # kW
-@export var build_cost: Array[ItemStack]
-@export var category: BuildingCategory
-@export var unlocked_by: TechnologyResource
-
-enum BuildingCategory {
-    COLLECTION,
-    TRANSPORT,
-    PROCESSING,
-    STORAGE,
-    POWER,
-    RESEARCH,
-    LOGISTICS
+### RecipeResource (`RecipeResource.cs`)
+```csharp
+public partial class RecipeResource : Resource
+{
+    [Export] public string Id { get; set; }
+    [Export] public string Name { get; set; }
+    [Export] public string[] IngredientIds { get; set; }
+    [Export] public int[] IngredientCounts { get; set; }
+    [Export] public string[] ResultIds { get; set; }
+    [Export] public int[] ResultCounts { get; set; }
+    [Export] public float CraftingTime { get; set; } = 1.0f;
+    [Export] public Enums.CraftingType CraftingType { get; set; }
+    [Export] public string RequiredTechnology { get; set; }
 }
 ```
 
-### TechnologyResource (`resources/research/TechnologyResource.gd`)
-```gdscript
-class_name TechnologyResource
-extends Resource
+### BuildingResource (`BuildingResource.cs`)
+```csharp
+public partial class BuildingResource : Resource
+{
+    [Export] public string Id { get; set; }
+    [Export] public string Name { get; set; }
+    [Export] public string Description { get; set; }
+    [Export] public Vector2I Size { get; set; } = Vector2I.One;
+    [Export] public float PowerConsumption { get; set; } = 0.0f;
+    [Export] public float PowerProduction { get; set; } = 0.0f;
+    [Export] public Enums.BuildingCategory Category { get; set; }
+    [Export] public string RequiredTechnology { get; set; }
+    [Export] public string[] BuildCostItemIds { get; set; }
+    [Export] public int[] BuildCostItemCounts { get; set; }
+}
+```
 
-@export var id: String
-@export var name: String
-@export var description: String
-@export var icon: Texture2D
-@export var prerequisites: Array[TechnologyResource]
-@export var science_cost: Dictionary  # {pack_type: count}
-@export var unlocks_recipes: Array[RecipeResource]
-@export var unlocks_buildings: Array[BuildingResource]
+### TechnologyResource (`TechnologyResource.cs`)
+```csharp
+public partial class TechnologyResource : Resource
+{
+    [Export] public string Id { get; set; }
+    [Export] public string Name { get; set; }
+    [Export] public string Description { get; set; }
+    [Export] public string[] PrerequisiteIds { get; set; }
+    [Export] public string[] SciencePackIds { get; set; }
+    [Export] public int[] SciencePackCounts { get; set; }
+    [Export] public string[] UnlocksRecipeIds { get; set; }
+    [Export] public string[] UnlocksBuildingIds { get; set; }
+}
 ```
 
 ---
@@ -345,119 +354,45 @@ extends Resource
 
 ### Base Classes
 
-#### BuildingEntity (`scripts/entities/BuildingEntity.gd`)
-```gdscript
-class_name BuildingEntity
-extends Node2D
+#### BuildingEntity (`BuildingEntity.cs`)
+```csharp
+public partial class BuildingEntity : Node2D
+{
+    public BuildingResource Definition { get; protected set; }
+    public Vector2I GridPosition { get; protected set; }
+    public int RotationIndex { get; protected set; } = 0;  // 0-3 for N, E, S, W
+    public bool IsPowered { get; protected set; } = true;
+    public Array<ItemStack> InternalInventory { get; protected set; } = new();
 
-var definition: BuildingResource
-var grid_position: Vector2i
-var rotation_index: int = 0  # 0, 1, 2, 3 for N, E, S, W
-var inventory: BuildingInventory
-
-signal building_activated
-signal building_deactivated
-signal inventory_changed
-
-func _ready():
-    add_to_group("buildings")
-
-func get_input_positions() -> Array[Vector2i]
-func get_output_positions() -> Array[Vector2i]
-func can_accept_item(item: ItemResource) -> bool
-func insert_item(item: ItemResource, count: int) -> int
-func extract_item() -> ItemStack
+    // Virtual methods for subclasses
+    public virtual bool CanAcceptItem(ItemResource item, Enums.Direction fromDirection)
+    public virtual bool InsertItem(ItemResource item, int count, Enums.Direction fromDirection)
+    public virtual ItemResource HasOutputItem(Enums.Direction toDirection)
+    public virtual ItemResource ExtractItem(Enums.Direction toDirection)
+    protected virtual void ProcessBuilding()  // Called each game tick
+}
 ```
 
-#### DebrisEntity (`scripts/entities/DebrisEntity.gd`)
-```gdscript
-class_name DebrisEntity
-extends Area2D
+#### DebrisEntity (`DebrisEntity.cs`)
+```csharp
+public partial class DebrisEntity : Area2D
+{
+    public string DebrisType { get; private set; }
+    public Array Contents { get; private set; }
+    public Vector2 DriftVelocity { get; private set; }
+    public bool IsCollectible { get; set; } = true;
 
-var debris_type: String
-var contents: Array[ItemStack]
-var drift_velocity: Vector2
-var is_collectible: bool = true
-
-signal collected(by: Node)
-signal despawned
-
-func _physics_process(delta):
-    position += drift_velocity * delta
-
-func collect() -> Array[ItemStack]:
-    collected.emit(null)
-    queue_free()
-    return contents
+    public void Initialize(string type, Array contents, int seed)
+    public Array Collect()
+}
 ```
 
 ### Building Types
 
-#### Conveyor Belt (`scripts/entities/buildings/ConveyorBelt.gd`)
-```gdscript
-class_name ConveyorBelt
-extends BuildingEntity
-
-var items_on_belt: Array[BeltItem]
-var belt_speed: float = 1.0  # tiles per second
-var direction: Vector2i
-
-class BeltItem:
-    var item: ItemResource
-    var position: float  # 0.0 to 1.0 along belt
-
-func _process(delta):
-    move_items(delta)
-    transfer_to_next()
-```
-
-#### Inserter (`scripts/entities/buildings/Inserter.gd`)
-```gdscript
-class_name Inserter
-extends BuildingEntity
-
-var pickup_position: Vector2i
-var drop_position: Vector2i
-var swing_time: float = 1.0
-var current_swing: float = 0.0
-var held_item: ItemStack
-var state: InserterState
-
-enum InserterState { IDLE, PICKING, DROPPING }
-```
-
-#### Assembler (`scripts/entities/buildings/Assembler.gd`)
-```gdscript
-class_name Assembler
-extends BuildingEntity
-
-var current_recipe: RecipeResource
-var input_inventory: Dictionary  # ItemResource -> count
-var output_inventory: Dictionary
-var crafting_progress: float = 0.0
-var is_crafting: bool = false
-
-func set_recipe(recipe: RecipeResource):
-    current_recipe = recipe
-
-func _process(delta):
-    if is_crafting:
-        update_crafting(delta)
-    elif can_start_crafting():
-        start_crafting()
-```
-
-#### Furnace (`scripts/entities/buildings/Furnace.gd`)
-```gdscript
-class_name Furnace
-extends BuildingEntity
-
-var smelting_recipes: Array[RecipeResource]
-var input_ore: ItemStack
-var output_plate: ItemStack
-var fuel: ItemStack  # For stone furnace
-var smelting_progress: float = 0.0
-```
+- **StoneFurnace** - 2x2 smelter with fuel, input, and output slots
+- **SmallChest** - 1x1 storage with 16 inventory slots
+- **ConveyorBelt** - 1x1 item transport, auto-connects to adjacent belts
+- **Inserter** - 1x1 item transfer with swing animation
 
 ---
 
@@ -465,116 +400,135 @@ var smelting_progress: float = 0.0
 
 ### Main Scene Tree
 ```
-Main (Node2D)
+Main (Node2D) - Main.cs
 ├── Background (ParallaxBackground)
-│   └── Stars (ParallaxLayer)
 ├── GameWorld (Node2D)
 │   ├── DebrisLayer (Node2D)
 │   │   └── [DebrisEntity instances]
-│   ├── StationLayer (Node2D)
-│   │   ├── FoundationTiles (TileMap)
-│   │   └── Buildings (Node2D)
-│   │       └── [BuildingEntity instances]
-│   └── ItemsLayer (Node2D)
-│       └── [Dropped items]
-├── Camera (Camera2D)
-└── UI (CanvasLayer)
-    ├── HUD
-    │   ├── Hotbar
-    │   ├── ResourceDisplay
-    │   └── Minimap
-    ├── InventoryPanel
-    ├── CraftingPanel
-    ├── ResearchPanel
-    └── BuildMenu
+│   └── StationLayer (Node2D)
+│       ├── FoundationTiles (Node2D)
+│       └── Buildings (Node2D)
+│           └── [BuildingEntity instances]
+├── Camera2D
+├── HUD (CanvasLayer) - HUD.cs
+│   ├── HotbarPanel
+│   ├── ResourcePanel
+│   ├── CraftingProgress
+│   └── Tooltip
+├── InventoryUI (CanvasLayer) - InventoryUI.cs
+├── BuildMenuUI (CanvasLayer) - BuildMenuUI.cs
+└── BuildingUI (CanvasLayer) - BuildingUI.cs
+```
+
+---
+
+## C# Patterns Used
+
+### Singleton Pattern
+All managers use a static `Instance` property set in `_EnterTree()`:
+```csharp
+public static GameManager Instance { get; private set; }
+
+public override void _EnterTree()
+{
+    Instance = this;
+}
+```
+
+### Node References in C#
+Since C# exports with NodePath don't auto-resolve, nodes are fetched in `_Ready()`:
+```csharp
+public override void _Ready()
+{
+    // Fetch node references manually
+    Camera ??= GetNodeOrNull<Camera2D>("Camera2D");
+    Hud ??= GetNodeOrNull<HUD>("HUD");
+    // etc.
+}
+```
+
+### Signal Definitions
+C# signals use delegate naming convention with `EventHandler` suffix:
+```csharp
+[Signal]
+public delegate void GameTickEventHandler(int tick);
+
+// Emit with:
+EmitSignal(SignalName.GameTick, CurrentTick);
+
+// Connect with:
+GameManager.Instance.GameTick += OnGameTick;
 ```
 
 ---
 
 ## Input Handling
 
-### InputManager (`scripts/core/InputManager.gd`)
-```gdscript
-# Input Actions (defined in project settings)
-# - "click" -> Left Mouse Button
-# - "right_click" -> Right Mouse Button
-# - "inventory" -> I
-# - "interact" -> E
-# - "rotate" -> R
-# - "cancel" -> Escape
-# - "move_up/down/left/right" -> WASD / Arrows
-# - "zoom_in/out" -> Mouse Wheel
-
-var current_mode: InputMode = InputMode.NORMAL
-var selected_building: BuildingResource = null
-var hovered_entity: Node2D = null
-
-enum InputMode {
-    NORMAL,
-    BUILDING_PLACEMENT,
-    DEMOLISH
-}
-```
+### Input Actions (defined in project.godot)
+- `click` -> Left Mouse Button
+- `right_click` -> Right Mouse Button
+- `inventory` -> I
+- `interact` -> E
+- `rotate` -> R
+- `cancel` -> Escape
+- `move_up/down/left/right` -> WASD / Arrows
+- `zoom_in/out` -> Mouse Wheel
+- `build_menu` -> B
 
 ---
 
-## Sprite Generation
+## File Structure
 
-### SpriteGenerator (`scripts/core/SpriteGenerator.gd`)
-Procedurally generates pixel art sprites at runtime.
+```
+scripts/csharp/
+├── Enums.cs                    ✓ Game enumerations
+├── Constants.cs                ✓ Game constants
+├── ItemStack.cs                ✓ Stack data class
+├── ItemResource.cs             ✓ Item resource
+├── RecipeResource.cs           ✓ Recipe resource
+├── BuildingResource.cs         ✓ Building resource
+├── TechnologyResource.cs       ✓ Technology resource
+├── GameManager.cs              ✓ Game state singleton
+├── GridManager.cs              ✓ Grid management singleton
+├── SpriteGenerator.cs          ✓ Procedural sprites singleton
+├── InventoryManager.cs         ✓ Inventory singleton
+├── CraftingManager.cs          ✓ Crafting singleton
+├── ResearchManager.cs          ✓ Research singleton
+├── DebrisManager.cs            ✓ Debris singleton
+├── PowerManager.cs             ✓ Power singleton
+├── BuildingManager.cs          ✓ Building placement singleton
+├── BuildingEntity.cs           ✓ Building base class
+├── DebrisEntity.cs             ✓ Debris entity
+├── StoneFurnace.cs             ✓ Furnace building
+├── SmallChest.cs               ✓ Chest building
+├── ConveyorBelt.cs             ✓ Belt building
+├── Inserter.cs                 ✓ Inserter building
+├── HUD.cs                      ✓ HUD UI
+├── InventoryUI.cs              ✓ Inventory UI
+├── BuildMenuUI.cs              ✓ Build menu UI
+├── BuildingUI.cs               ✓ Building interaction UI
+└── Main.cs                     ✓ Main scene controller
 
-```gdscript
-class_name SpriteGenerator
+scenes/
+└── game/
+    └── Main.tscn               ✓ Main game scene
 
-const SPRITE_SIZE = 32
-
-static func generate_ore(color: Color, variation: int = 0) -> ImageTexture
-static func generate_plate(color: Color) -> ImageTexture
-static func generate_building(type: String, size: Vector2i) -> ImageTexture
-static func generate_debris(type: String) -> ImageTexture
-static func generate_icon(base: String, overlay: String = "") -> ImageTexture
+SpaceFactory.csproj             ✓ C# project file
+SpaceFactory.sln                ✓ Solution file
 ```
 
----
+## Autoload Singletons (project.godot)
 
-## Save System
-
-### SaveManager (`scripts/core/SaveManager.gd`)
-```gdscript
-# Save file structure (JSON)
-{
-    "version": "1.0",
-    "timestamp": 1234567890,
-    "game_state": {
-        "tick": 12345,
-        "game_speed": 1.0
-    },
-    "player": {
-        "inventory": [...],
-        "hotbar": [...]
-    },
-    "station": {
-        "foundations": [[0,0], [1,0], ...],
-        "buildings": [
-            {
-                "type": "assembler_mk1",
-                "position": [1, 1],
-                "rotation": 0,
-                "inventory": {...},
-                "recipe": "iron_gear"
-            }
-        ]
-    },
-    "research": {
-        "unlocked": ["automation_1", "logistics_1"],
-        "current": "automation_2",
-        "progress": 0.45
-    },
-    "debris": {
-        "spawn_rate": 2.5
-    }
-}
-```
+The following C# singletons are configured and load automatically:
+- `GameManager` - Game state and tick system
+- `GridManager` - Station grid management
+- `SpriteGenerator` - Procedural sprite generation
+- `InventoryManager` - Player inventory
+- `CraftingManager` - Recipes and crafting
+- `DebrisManager` - Debris spawning/collection
+- `ResearchManager` - Tech tree
+- `PowerManager` - Power network
+- `BuildingManager` - Building placement and registry
 
 ---
 
@@ -586,78 +540,9 @@ static func generate_icon(base: String, overlay: String = "") -> ImageTexture
 2. **Chunk-Based Updates**: Only update visible/nearby buildings
 3. **Batched Rendering**: Use tilemap for belts, batch draw calls
 4. **LOD for Debris**: Simplified rendering for distant debris
-5. **Tick-Based Logic**: Process buildings on game ticks, not every frame
+5. **Tick-Based Logic**: Process buildings on game ticks (60/sec), not every frame
 
 ### Target Performance
 - 60 FPS with 500+ buildings
 - 100+ active debris entities
 - Smooth scrolling and zooming
-
----
-
-## File Structure
-
-```
-scripts/
-├── core/
-│   ├── GameManager.gd        ✓ Implemented
-│   ├── GridManager.gd        ✓ Implemented
-│   ├── SpriteGenerator.gd    ✓ Implemented
-│   └── SaveManager.gd        ✗ Phase 5
-├── systems/
-│   ├── InventoryManager.gd   ✓ Implemented
-│   ├── CraftingManager.gd    ✓ Implemented
-│   ├── ResearchManager.gd    ✓ Implemented
-│   ├── DebrisManager.gd      ✓ Implemented
-│   ├── PowerManager.gd       ✓ Implemented
-│   └── BuildingManager.gd    ✓ Implemented (Phase 2)
-├── entities/
-│   ├── BuildingEntity.gd     ✓ Implemented - Base class
-│   ├── DebrisEntity.gd       ✓ Implemented - Floating debris
-│   ├── StoneFurnace.gd       ✓ Implemented - 2x2 smelter
-│   ├── SmallChest.gd         ✓ Implemented - 1x1 storage
-│   ├── ConveyorBelt.gd       ✓ Implemented - Item transport
-│   ├── Inserter.gd           ✓ Implemented - Item transfer
-│   ├── Assembler.gd          ✗ Phase 3
-│   ├── Lab.gd                ✗ Phase 3
-│   └── DebrisCollector.gd    ✗ Phase 3
-├── ui/
-│   ├── HUD.gd                ✓ Implemented
-│   ├── InventoryUI.gd        ✓ Implemented
-│   ├── BuildMenuUI.gd        ✓ Implemented (Phase 2)
-│   ├── CraftingUI.gd         ✗ Deferred
-│   ├── ResearchUI.gd         ✗ Phase 3
-│   └── TooltipUI.gd          ✗ Phase 3
-├── game/
-│   └── Main.gd               ✓ Implemented
-└── data/
-    ├── Enums.gd              ✓ Implemented
-    ├── ItemStack.gd          ✓ Implemented
-    └── Constants.gd          ✓ Implemented
-
-resources/
-├── items/
-│   └── ItemResource.gd       ✓ Implemented
-├── recipes/
-│   └── RecipeResource.gd     ✓ Implemented
-├── buildings/
-│   └── BuildingResource.gd   ✓ Implemented
-└── research/
-    └── TechnologyResource.gd ✓ Implemented
-
-scenes/
-└── game/
-    └── Main.tscn             ✓ Implemented
-```
-
-## Autoload Singletons (project.godot)
-
-The following singletons are configured and load automatically:
-- `GameManager` - Game state and tick system
-- `GridManager` - Station grid management
-- `InventoryManager` - Player inventory
-- `CraftingManager` - Recipes and crafting
-- `DebrisManager` - Debris spawning/collection
-- `ResearchManager` - Tech tree
-- `PowerManager` - Power network
-- `BuildingManager` - Building placement and registry (Phase 2)

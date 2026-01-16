@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "W8Z3dykXnac=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\mould\\Code\\SpaceFactory\\Space Factory.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\mould\\.nuget\\packages\\godot.sourcegenerators\\4.5.1\\godot.sourcegenerators.4.5.1.nupkg.sha512",
+    "C:\\Users\\mould\\.nuget\\packages\\godotsharp\\4.5.1\\godotsharp.4.5.1.nupkg.sha512",
+    "C:\\Users\\mould\\.nuget\\packages\\godotsharpeditor\\4.5.1\\godotsharpeditor.4.5.1.nupkg.sha512"
+  ],
+  "logs": []
+}

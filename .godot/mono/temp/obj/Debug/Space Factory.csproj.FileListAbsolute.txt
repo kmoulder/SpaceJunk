@@ -1,0 +1,17 @@
+C:\Users\mould\Code\SpaceFactory\.godot\mono\temp\bin\Debug\Space Factory.deps.json
+C:\Users\mould\Code\SpaceFactory\.godot\mono\temp\bin\Debug\Space Factory.runtimeconfig.json
+C:\Users\mould\Code\SpaceFactory\.godot\mono\temp\bin\Debug\Space Factory.dll
+C:\Users\mould\Code\SpaceFactory\.godot\mono\temp\bin\Debug\Space Factory.pdb
+C:\Users\mould\Code\SpaceFactory\.godot\mono\temp\bin\Debug\GodotSharp.dll
+C:\Users\mould\Code\SpaceFactory\.godot\mono\temp\bin\Debug\GodotSharpEditor.dll
+C:\Users\mould\Code\SpaceFactory\.godot\mono\temp\obj\Debug\Space Factory.csproj.AssemblyReference.cache
+C:\Users\mould\Code\SpaceFactory\.godot\mono\temp\obj\Debug\Space Factory.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\mould\Code\SpaceFactory\.godot\mono\temp\obj\Debug\Space Factory.AssemblyInfoInputs.cache
+C:\Users\mould\Code\SpaceFactory\.godot\mono\temp\obj\Debug\Space Factory.AssemblyInfo.cs
+C:\Users\mould\Code\SpaceFactory\.godot\mono\temp\obj\Debug\Space Factory.csproj.CoreCompileInputs.cache
+C:\Users\mould\Code\SpaceFactory\.godot\mono\temp\obj\Debug\Space Fa.7550AB46.Up2Date
+C:\Users\mould\Code\SpaceFactory\.godot\mono\temp\obj\Debug\Space Factory.dll
+C:\Users\mould\Code\SpaceFactory\.godot\mono\temp\obj\Debug\refint\Space Factory.dll
+C:\Users\mould\Code\SpaceFactory\.godot\mono\temp\obj\Debug\Space Factory.pdb
+C:\Users\mould\Code\SpaceFactory\.godot\mono\temp\obj\Debug\Space Factory.genruntimeconfig.cache
+C:\Users\mould\Code\SpaceFactory\.godot\mono\temp\obj\Debug\ref\Space Factory.dll
