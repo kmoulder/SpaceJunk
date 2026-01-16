@@ -330,14 +330,25 @@ public partial class Main : Node2D
 
     public override void _Input(InputEvent @event)
     {
-        // Zoom with mouse wheel
-        if (@event.IsActionPressed("zoom_in"))
+        // Zoom with mouse wheel (only when not over UI)
+        if (!IsUiBlocking())
         {
-            _cameraZoomTarget = Mathf.Min(_cameraZoomTarget + Constants.CameraZoomStep, Constants.CameraZoomMax);
+            if (@event.IsActionPressed("zoom_in"))
+            {
+                _cameraZoomTarget = Mathf.Min(_cameraZoomTarget + Constants.CameraZoomStep, Constants.CameraZoomMax);
+            }
+            else if (@event.IsActionPressed("zoom_out"))
+            {
+                _cameraZoomTarget = Mathf.Max(_cameraZoomTarget - Constants.CameraZoomStep, Constants.CameraZoomMin);
+            }
         }
-        else if (@event.IsActionPressed("zoom_out"))
+
+        // Pause toggle with Spacebar
+        if (@event.IsActionPressed("pause"))
         {
-            _cameraZoomTarget = Mathf.Max(_cameraZoomTarget - Constants.CameraZoomStep, Constants.CameraZoomMin);
+            GameManager.Instance?.TogglePause();
+            GetViewport().SetInputAsHandled();
+            return;
         }
 
         // Rotation for building placement
@@ -444,7 +455,7 @@ public partial class Main : Node2D
             return;
 
         // Open building UI for buildings with inventory
-        if (building is SmallChest or StoneFurnace or Lab)
+        if (building is SmallChest or StoneFurnace or Lab or Assembler)
         {
             BuildingUi?.OpenForBuilding(building);
         }

@@ -544,6 +544,82 @@ public partial class SpriteGenerator : Node
     }
 
     /// <summary>
+    /// Generate assembler sprite
+    /// </summary>
+    public Texture2D GenerateAssembler(int tier = 1)
+    {
+        string cacheKey = $"assembler_{tier}";
+        if (_textureCache.TryGetValue(cacheKey, out var cached))
+            return cached;
+
+        int size = Constants.TileSize * 2;
+        var img = Image.CreateEmpty(size, size, false, Image.Format.Rgba8);
+        img.Fill(Colors.Transparent);
+
+        // Tier-based colors
+        Color bodyColor = tier switch
+        {
+            1 => new Color(0.35f, 0.35f, 0.4f),
+            2 => new Color(0.3f, 0.4f, 0.5f),
+            _ => new Color(0.4f, 0.35f, 0.45f)
+        };
+        Color darkColor = bodyColor.Darkened(0.25f);
+        Color accentColor = tier switch
+        {
+            1 => new Color(0.6f, 0.5f, 0.2f),
+            2 => new Color(0.2f, 0.6f, 0.4f),
+            _ => new Color(0.5f, 0.3f, 0.6f)
+        };
+
+        // Main body
+        for (int x = 4; x < size - 4; x++)
+        {
+            for (int y = 4; y < size - 4; y++)
+            {
+                img.SetPixel(x, y, bodyColor);
+            }
+        }
+
+        // Border
+        for (int x = 4; x < size - 4; x++)
+        {
+            img.SetPixel(x, 4, darkColor);
+            img.SetPixel(x, size - 5, darkColor);
+        }
+        for (int y = 4; y < size - 4; y++)
+        {
+            img.SetPixel(4, y, darkColor);
+            img.SetPixel(size - 5, y, darkColor);
+        }
+
+        // Mechanical arm / gear representation in center
+        int cx = size / 2;
+        int cy = size / 2;
+        DrawFilledCircle(img, cx, cy, 12, darkColor);
+        DrawFilledCircle(img, cx, cy, 8, accentColor);
+        DrawFilledCircle(img, cx, cy, 4, darkColor);
+
+        // Input/output indicators
+        // Left side (input)
+        for (int y = 20; y < 44; y++)
+        {
+            img.SetPixel(6, y, new Color(0.3f, 0.5f, 0.3f));
+            img.SetPixel(7, y, new Color(0.3f, 0.5f, 0.3f));
+        }
+
+        // Right side (output)
+        for (int y = 20; y < 44; y++)
+        {
+            img.SetPixel(size - 7, y, new Color(0.5f, 0.4f, 0.2f));
+            img.SetPixel(size - 8, y, new Color(0.5f, 0.4f, 0.2f));
+        }
+
+        var texture = ImageTexture.CreateFromImage(img);
+        _textureCache[cacheKey] = texture;
+        return texture;
+    }
+
+    /// <summary>
     /// Generate lab sprite
     /// </summary>
     public Texture2D GenerateLab()

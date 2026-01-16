@@ -41,6 +41,12 @@ public partial class BuildingUI : CanvasLayer
     // Slot types for furnace
     private enum FurnaceSlotType { Fuel = 0, Input = 1, Output = 2 }
 
+    // Assembler recipe selection
+    private Button _recipeSelectButton;
+    private PanelContainer _recipePanel;
+    private VBoxContainer _recipeList;
+    private bool _recipePanelOpen = false;
+
     public override void _Ready()
     {
         Layer = 18;
@@ -322,6 +328,10 @@ public partial class BuildingUI : CanvasLayer
                     _ => null
                 };
             }
+            else if (_currentBuilding is Assembler assembler)
+            {
+                stack = assembler.GetSlot(_hoverSlotIndex);
+            }
         }
 
         if (stack == null || stack.IsEmpty())
@@ -399,6 +409,11 @@ public partial class BuildingUI : CanvasLayer
         {
             SetupLabUI();
             _progressContainer.Visible = false;
+        }
+        else if (_currentBuilding is Assembler)
+        {
+            SetupAssemblerUI();
+            _progressContainer.Visible = true;
         }
         else
         {
@@ -544,6 +559,232 @@ public partial class BuildingUI : CanvasLayer
         _buildingSlotsContainer.AddChild(infoLabel);
     }
 
+    private void SetupAssemblerUI()
+    {
+        var assembler = _currentBuilding as Assembler;
+        if (assembler == null)
+            return;
+
+        // Recipe selection section
+        var recipeSection = new HBoxContainer();
+        recipeSection.AddThemeConstantOverride("separation", 8);
+        _buildingSlotsContainer.AddChild(recipeSection);
+
+        var recipeLabel = new Label { Text = "Recipe:" };
+        recipeLabel.AddThemeColorOverride("font_color", Constants.UiTextDim);
+        recipeSection.AddChild(recipeLabel);
+
+        _recipeSelectButton = new Button
+        {
+            Text = assembler.CurrentRecipe?.Name ?? "Select Recipe",
+            CustomMinimumSize = new Vector2(150, 28),
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill
+        };
+        _recipeSelectButton.Pressed += OnRecipeSelectPressed;
+        recipeSection.AddChild(_recipeSelectButton);
+
+        // Input/Output layout
+        var ioLayout = new HBoxContainer();
+        ioLayout.AddThemeConstantOverride("separation", 16);
+        _buildingSlotsContainer.AddChild(ioLayout);
+
+        // Input slots (4 slots in 2x2 grid)
+        var inputVbox = new VBoxContainer();
+        inputVbox.AddThemeConstantOverride("separation", 4);
+        ioLayout.AddChild(inputVbox);
+
+        var inputLabel = new Label
+        {
+            Text = "Inputs",
+            HorizontalAlignment = HorizontalAlignment.Center
+        };
+        inputLabel.AddThemeColorOverride("font_color", Constants.UiTextDim);
+        inputVbox.AddChild(inputLabel);
+
+        var inputGrid = new GridContainer { Columns = 2 };
+        inputGrid.AddThemeConstantOverride("h_separation", 4);
+        inputGrid.AddThemeConstantOverride("v_separation", 4);
+        inputVbox.AddChild(inputGrid);
+
+        for (int i = 0; i < 4; i++)
+        {
+            var slot = CreateSlot(i, false);
+            slot.CustomMinimumSize = new Vector2(44, 44);
+            inputGrid.AddChild(slot);
+            _buildingSlots.Add(slot);
+        }
+
+        // Arrow indicator
+        var arrow = new Label
+        {
+            Text = "→",
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        arrow.AddThemeFontSizeOverride("font_size", 24);
+        arrow.AddThemeColorOverride("font_color", Constants.UiTextDim);
+        ioLayout.AddChild(arrow);
+
+        // Output slot
+        var outputVbox = new VBoxContainer();
+        outputVbox.AddThemeConstantOverride("separation", 4);
+        ioLayout.AddChild(outputVbox);
+
+        var outputLabel = new Label
+        {
+            Text = "Output",
+            HorizontalAlignment = HorizontalAlignment.Center
+        };
+        outputLabel.AddThemeColorOverride("font_color", Constants.UiTextDim);
+        outputVbox.AddChild(outputLabel);
+
+        var outputSlot = CreateSlot(4, false); // Index 4 = output
+        outputSlot.CustomMinimumSize = new Vector2(48, 48);
+        outputVbox.AddChild(outputSlot);
+        _buildingSlots.Add(outputSlot);
+
+        // Create recipe selection panel (hidden by default)
+        CreateRecipeSelectionPanel();
+    }
+
+    private void CreateRecipeSelectionPanel()
+    {
+        _recipePanel = new PanelContainer
+        {
+            Visible = false,
+            CustomMinimumSize = new Vector2(250, 200)
+        };
+
+        var panelStyle = new StyleBoxFlat
+        {
+            BgColor = new Color(0.12f, 0.12f, 0.18f, 0.98f),
+            BorderColor = Constants.UiBorder
+        };
+        panelStyle.SetBorderWidthAll(2);
+        panelStyle.SetCornerRadiusAll(6);
+        _recipePanel.AddThemeStyleboxOverride("panel", panelStyle);
+
+        var margin = new MarginContainer();
+        margin.AddThemeConstantOverride("margin_left", 8);
+        margin.AddThemeConstantOverride("margin_right", 8);
+        margin.AddThemeConstantOverride("margin_top", 8);
+        margin.AddThemeConstantOverride("margin_bottom", 8);
+        _recipePanel.AddChild(margin);
+
+        var vbox = new VBoxContainer();
+        vbox.AddThemeConstantOverride("separation", 8);
+        margin.AddChild(vbox);
+
+        var titleHbox = new HBoxContainer();
+        vbox.AddChild(titleHbox);
+
+        var title = new Label
+        {
+            Text = "Select Recipe",
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill
+        };
+        title.AddThemeColorOverride("font_color", Constants.UiText);
+        titleHbox.AddChild(title);
+
+        var closeBtn = new Button { Text = "X", CustomMinimumSize = new Vector2(24, 24) };
+        closeBtn.Pressed += () => { _recipePanel.Visible = false; _recipePanelOpen = false; };
+        titleHbox.AddChild(closeBtn);
+
+        var scroll = new ScrollContainer
+        {
+            CustomMinimumSize = new Vector2(0, 150),
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill
+        };
+        vbox.AddChild(scroll);
+
+        _recipeList = new VBoxContainer();
+        _recipeList.AddThemeConstantOverride("separation", 4);
+        scroll.AddChild(_recipeList);
+
+        _buildingSlotsContainer.AddChild(_recipePanel);
+    }
+
+    private void OnRecipeSelectPressed()
+    {
+        if (_recipePanelOpen)
+        {
+            _recipePanel.Visible = false;
+            _recipePanelOpen = false;
+            return;
+        }
+
+        // Populate recipe list
+        foreach (var child in _recipeList.GetChildren())
+        {
+            child.QueueFree();
+        }
+
+        // Get assembler recipes
+        var recipes = CraftingManager.Instance?.GetRecipesForBuilding(Enums.CraftingType.Assembler);
+        if (recipes == null || recipes.Count == 0)
+        {
+            // Also include Player recipes that can be automated
+            recipes = CraftingManager.Instance?.GetRecipesForBuilding(Enums.CraftingType.Player);
+        }
+
+        // Add "Clear" option
+        var clearBtn = new Button
+        {
+            Text = "[ Clear Recipe ]",
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill
+        };
+        clearBtn.Pressed += () => SelectRecipe(null);
+        _recipeList.AddChild(clearBtn);
+
+        if (recipes != null)
+        {
+            foreach (var recipe in recipes)
+            {
+                // Check if recipe is unlocked
+                bool unlocked = string.IsNullOrEmpty(recipe.RequiredTechnology) ||
+                    ResearchManager.Instance?.IsTechnologyUnlocked(recipe.RequiredTechnology) == true;
+
+                var btn = new Button
+                {
+                    Text = unlocked ? recipe.Name : $"[Locked] {recipe.Name}",
+                    SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+                    Disabled = !unlocked
+                };
+
+                if (unlocked)
+                {
+                    var capturedRecipe = recipe;
+                    btn.Pressed += () => SelectRecipe(capturedRecipe);
+                }
+
+                _recipeList.AddChild(btn);
+            }
+        }
+
+        _recipePanel.Visible = true;
+        _recipePanelOpen = true;
+    }
+
+    private void SelectRecipe(RecipeResource recipe)
+    {
+        if (_currentBuilding is Assembler assembler)
+        {
+            if (recipe == null)
+            {
+                assembler.ClearRecipe();
+                _recipeSelectButton.Text = "Select Recipe";
+            }
+            else
+            {
+                assembler.SetRecipe(recipe);
+                _recipeSelectButton.Text = recipe.Name;
+            }
+        }
+
+        _recipePanel.Visible = false;
+        _recipePanelOpen = false;
+        UpdateBuildingDisplay();
+    }
+
     private void SetupGenericUI()
     {
         if (_currentBuilding is not BuildingEntity entity)
@@ -580,6 +821,8 @@ public partial class BuildingUI : CanvasLayer
             UpdateFurnaceDisplay(furnace);
         else if (_currentBuilding is Lab lab)
             UpdateLabDisplay(lab);
+        else if (_currentBuilding is Assembler assembler)
+            UpdateAssemblerDisplay(assembler);
         else if (_currentBuilding is BuildingEntity entity)
             UpdateGenericDisplay(entity);
     }
@@ -647,6 +890,30 @@ public partial class BuildingUI : CanvasLayer
         }
     }
 
+    private void UpdateAssemblerDisplay(Assembler assembler)
+    {
+        // Update input slots (indices 0-3)
+        for (int i = 0; i < 4 && i < _buildingSlots.Count; i++)
+        {
+            UpdateSlotDisplay(_buildingSlots[i], assembler.InputSlots[i]);
+        }
+
+        // Update output slot (index 4)
+        if (_buildingSlots.Count > 4)
+        {
+            UpdateSlotDisplay(_buildingSlots[4], assembler.OutputSlot);
+        }
+
+        // Update progress bar
+        _progressBar.Value = assembler.GetCraftingProgress();
+
+        // Update recipe button text
+        if (_recipeSelectButton != null)
+        {
+            _recipeSelectButton.Text = assembler.CurrentRecipe?.Name ?? "Select Recipe";
+        }
+    }
+
     private void UpdateGenericDisplay(BuildingEntity entity)
     {
         for (int i = 0; i < _buildingSlots.Count; i++)
@@ -706,7 +973,8 @@ public partial class BuildingUI : CanvasLayer
         {
             if (mouseEvent.ButtonIndex == MouseButton.Left)
             {
-                TransferFromPlayer(index);
+                bool transferStack = mouseEvent.ShiftPressed;
+                TransferFromPlayer(index, transferStack);
             }
         }
     }
@@ -717,12 +985,13 @@ public partial class BuildingUI : CanvasLayer
         {
             if (mouseEvent.ButtonIndex == MouseButton.Left)
             {
-                TransferFromBuilding(index);
+                bool transferStack = mouseEvent.ShiftPressed;
+                TransferFromBuilding(index, transferStack);
             }
         }
     }
 
-    private void TransferFromPlayer(int slotIndex)
+    private void TransferFromPlayer(int slotIndex, bool transferStack = false)
     {
         var stack = InventoryManager.Instance?.GetSlot(slotIndex);
         if (stack == null || stack.IsEmpty())
@@ -731,18 +1000,36 @@ public partial class BuildingUI : CanvasLayer
         if (_currentBuilding == null)
             return;
 
+        int amountToTransfer = transferStack ? stack.Count : 1;
+
         // Try to transfer to building
         if (_currentBuilding is StoneFurnace furnace)
         {
-            TransferToFurnace(furnace, stack, slotIndex);
+            TransferToFurnace(furnace, stack, slotIndex, amountToTransfer);
+        }
+        else if (_currentBuilding is Lab lab)
+        {
+            TransferToLab(lab, stack, slotIndex, amountToTransfer);
         }
         else if (_currentBuilding is BuildingEntity entity)
         {
             if (entity.CanAcceptItem(stack.Item))
             {
-                if (entity.InsertItem(stack.Item, 1))
+                int transferred = 0;
+                for (int i = 0; i < amountToTransfer; i++)
                 {
-                    InventoryManager.Instance?.RemoveItemAt(slotIndex, 1);
+                    if (entity.InsertItem(stack.Item, 1))
+                    {
+                        transferred++;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                if (transferred > 0)
+                {
+                    InventoryManager.Instance?.RemoveItemAt(slotIndex, transferred);
                     UpdateBuildingDisplay();
                     UpdatePlayerInventory();
                 }
@@ -750,41 +1037,87 @@ public partial class BuildingUI : CanvasLayer
         }
     }
 
-    private void TransferToFurnace(StoneFurnace furnace, ItemStack stack, int playerSlot)
+    private void TransferToFurnace(StoneFurnace furnace, ItemStack stack, int playerSlot, int amount)
     {
         // Check if it's fuel or ore
         if (furnace.CanAcceptItem(stack.Item))
         {
-            if (furnace.InsertItem(stack.Item, 1))
+            int transferred = 0;
+            for (int i = 0; i < amount; i++)
             {
-                InventoryManager.Instance?.RemoveItemAt(playerSlot, 1);
+                if (furnace.InsertItem(stack.Item, 1))
+                {
+                    transferred++;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            if (transferred > 0)
+            {
+                InventoryManager.Instance?.RemoveItemAt(playerSlot, transferred);
                 UpdateBuildingDisplay();
                 UpdatePlayerInventory();
             }
         }
     }
 
-    private void TransferFromBuilding(int slotIndex)
+    private void TransferToLab(Lab lab, ItemStack stack, int playerSlot, int amount)
+    {
+        // Labs only accept science packs
+        if (stack.Item.Category != Enums.ItemCategory.Science)
+            return;
+
+        // Check if this pack type is valid for the lab
+        if (!lab.ScienceSlots.ContainsKey(stack.Item.Id))
+            return;
+
+        var labStack = lab.ScienceSlots[stack.Item.Id];
+        int transferred = 0;
+        for (int i = 0; i < amount; i++)
+        {
+            if (labStack.Count < 64) // Max stack size
+            {
+                if (labStack.Item == null)
+                    labStack.Item = stack.Item;
+                labStack.Add(1);
+                transferred++;
+            }
+            else
+            {
+                break;
+            }
+        }
+        if (transferred > 0)
+        {
+            InventoryManager.Instance?.RemoveItemAt(playerSlot, transferred);
+            UpdateBuildingDisplay();
+            UpdatePlayerInventory();
+        }
+    }
+
+    private void TransferFromBuilding(int slotIndex, bool transferStack = false)
     {
         if (_currentBuilding == null)
             return;
 
         ItemResource item = null;
+        int availableCount = 0;
+        ItemStack sourceStack = null;
 
         if (_currentBuilding is SmallChest chest)
         {
-            var stack = chest.GetSlot(slotIndex);
-            if (stack != null && !stack.IsEmpty())
+            sourceStack = chest.GetSlot(slotIndex);
+            if (sourceStack != null && !sourceStack.IsEmpty())
             {
-                item = stack.Item;
-                stack.Remove(1);
-                if (stack.Count <= 0)
-                    stack.Item = null;
+                item = sourceStack.Item;
+                availableCount = sourceStack.Count;
             }
         }
         else if (_currentBuilding is StoneFurnace furnace)
         {
-            ItemStack stack = (FurnaceSlotType)slotIndex switch
+            sourceStack = (FurnaceSlotType)slotIndex switch
             {
                 FurnaceSlotType.Fuel => furnace.FuelSlot,
                 FurnaceSlotType.Input => furnace.InputSlot,
@@ -792,12 +1125,10 @@ public partial class BuildingUI : CanvasLayer
                 _ => null
             };
 
-            if (stack != null && !stack.IsEmpty())
+            if (sourceStack != null && !sourceStack.IsEmpty())
             {
-                item = stack.Item;
-                stack.Remove(1);
-                if (stack.Count <= 0)
-                    stack.Item = null;
+                item = sourceStack.Item;
+                availableCount = sourceStack.Count;
             }
         }
         else if (_currentBuilding is Lab lab)
@@ -808,31 +1139,51 @@ public partial class BuildingUI : CanvasLayer
                 var packId = packTypes[slotIndex];
                 if (lab.ScienceSlots.TryGetValue(packId, out var stack) && !stack.IsEmpty())
                 {
+                    sourceStack = stack;
                     item = stack.Item;
-                    stack.Remove(1);
-                    if (stack.Count <= 0)
-                        stack.Item = null;
+                    availableCount = stack.Count;
                 }
             }
         }
+        else if (_currentBuilding is Assembler assembler)
+        {
+            sourceStack = assembler.GetSlot(slotIndex);
+            if (sourceStack != null && !sourceStack.IsEmpty())
+            {
+                item = sourceStack.Item;
+                availableCount = sourceStack.Count;
+            }
+        }
+
+        if (item == null || availableCount == 0)
+            return;
+
+        int amountToTransfer = transferStack ? availableCount : 1;
+        int transferred = 0;
 
         // Add to player inventory
-        if (item != null)
+        for (int i = 0; i < amountToTransfer; i++)
         {
             int overflow = InventoryManager.Instance?.AddItem(item, 1) ?? 1;
             if (overflow == 0)
             {
-                UpdateBuildingDisplay();
-                UpdatePlayerInventory();
+                transferred++;
             }
             else
             {
-                // Failed to add to inventory, put it back
-                if (_currentBuilding is SmallChest c)
-                    c.InsertItem(item, 1);
-                else if (_currentBuilding is StoneFurnace f)
-                    f.InsertItem(item, 1);
+                break; // Inventory full
             }
+        }
+
+        // Remove transferred amount from building
+        if (transferred > 0 && sourceStack != null)
+        {
+            sourceStack.Remove(transferred);
+            if (sourceStack.Count <= 0)
+                sourceStack.Item = null;
+
+            UpdateBuildingDisplay();
+            UpdatePlayerInventory();
         }
     }
 

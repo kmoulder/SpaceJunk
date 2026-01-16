@@ -318,6 +318,12 @@ public partial class CraftingManager : Node
         RegisterRecipe(CreateRecipe("logistic_science_pack", "Logistic Science Pack", Enums.CraftingType.Player,
             new[] { "iron_gear", "electronic_circuit" }, new[] { 1, 1 },
             new[] { "logistic_science" }, new[] { 1 }, 6.0f));
+
+        // Building materials
+        RegisterRecipe(CreateRecipe("foundation", "Foundation", Enums.CraftingType.Player,
+            new[] { "steel_plate", "stone" }, new[] { 1, 2 },
+            new[] { "foundation" }, new[] { 1 }, 2.0f,
+            "station_expansion"));
     }
 
     /// <summary>

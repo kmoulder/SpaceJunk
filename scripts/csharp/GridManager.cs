@@ -288,4 +288,62 @@ public partial class GridManager : Node
         _buildings.Clear();
         _buildingOrigins.Clear();
     }
+
+    /// <summary>
+    /// Check if a position is adjacent to existing foundation (valid for expansion)
+    /// </summary>
+    public bool IsAdjacentToFoundation(Vector2I pos)
+    {
+        // Already has foundation - not a valid expansion spot
+        if (HasFoundation(pos))
+            return false;
+
+        // Check all 4 cardinal directions
+        var directions = new[] { Vector2I.Up, Vector2I.Down, Vector2I.Left, Vector2I.Right };
+        foreach (var dir in directions)
+        {
+            if (HasFoundation(pos + dir))
+                return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Get all valid expansion positions (tiles adjacent to foundation but not foundation themselves)
+    /// </summary>
+    public Array<Vector2I> GetExpansionPositions()
+    {
+        var result = new Array<Vector2I>();
+        var checked_ = new Dictionary<Vector2I, bool>();
+        var directions = new[] { Vector2I.Up, Vector2I.Down, Vector2I.Left, Vector2I.Right };
+
+        foreach (var foundationPos in _foundationTiles.Keys)
+        {
+            foreach (var dir in directions)
+            {
+                var adjacent = foundationPos + dir;
+                if (!HasFoundation(adjacent) && !checked_.ContainsKey(adjacent))
+                {
+                    result.Add(adjacent);
+                    checked_[adjacent] = true;
+                }
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Try to place foundation at position (must be adjacent to existing foundation)
+    /// Returns true if successful
+    /// </summary>
+    public bool TryPlaceFoundation(Vector2I pos)
+    {
+        if (!IsAdjacentToFoundation(pos))
+            return false;
+
+        AddFoundation(pos, true);
+        return true;
+    }
 }

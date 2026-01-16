@@ -115,7 +115,6 @@ public partial class BuildingManager : Node
     {
         SelectedBuilding = buildingDef;
         PlacementRotation = 0;
-        GameManager.Instance?.SetGameState(Enums.GameState.Building);
         EmitSignal(SignalName.BuildModeChanged, true, buildingDef);
         CreateGhostPreview();
     }
@@ -127,7 +126,6 @@ public partial class BuildingManager : Node
     {
         SelectedBuilding = null;
         RemoveGhostPreview();
-        GameManager.Instance?.SetGameState(Enums.GameState.Playing);
         EmitSignal(SignalName.BuildModeChanged, false, (BuildingResource)null);
     }
 
@@ -171,6 +169,12 @@ public partial class BuildingManager : Node
         if (SelectedBuilding == null)
             return false;
 
+        // Special case: Foundation placement
+        if (SelectedBuilding.Id == "foundation")
+        {
+            return TryPlaceFoundation(gridPos);
+        }
+
         if (!GridManager.Instance.CanPlaceBuilding(gridPos, SelectedBuilding))
             return false;
 
@@ -194,6 +198,28 @@ public partial class BuildingManager : Node
 
         // Notify adjacent buildings
         NotifyNeighbors(gridPos, SelectedBuilding);
+
+        return true;
+    }
+
+    /// <summary>
+    /// Try to place foundation at grid position (must be adjacent to existing foundation)
+    /// </summary>
+    private bool TryPlaceFoundation(Vector2I gridPos)
+    {
+        // Check if position is valid for foundation placement
+        if (!GridManager.Instance.IsAdjacentToFoundation(gridPos))
+            return false;
+
+        // Check if player has resources
+        if (!CanAffordBuilding(SelectedBuilding))
+            return false;
+
+        // Consume resources
+        ConsumeBuildingCost(SelectedBuilding);
+
+        // Place the foundation (GridManager handles the visual via signal)
+        GridManager.Instance.TryPlaceFoundation(gridPos);
 
         return true;
     }
@@ -240,7 +266,16 @@ public partial class BuildingManager : Node
         GhostPreview.Position = GridManager.Instance.GridToWorld(gridPos);
 
         // Update color based on placement validity
-        bool canPlace = GridManager.Instance.CanPlaceBuilding(gridPos, SelectedBuilding);
+        bool canPlace;
+        if (SelectedBuilding.Id == "foundation")
+        {
+            // Foundation has special placement rules
+            canPlace = GridManager.Instance.IsAdjacentToFoundation(gridPos);
+        }
+        else
+        {
+            canPlace = GridManager.Instance.CanPlaceBuilding(gridPos, SelectedBuilding);
+        }
         canPlace = canPlace && CanAffordBuilding(SelectedBuilding);
 
         var sprite = GhostPreview.GetNodeOrNull<Sprite2D>("Sprite");
@@ -321,8 +356,11 @@ public partial class BuildingManager : Node
             "transport_belt" => SpriteGenerator.Instance.GenerateBelt((Enums.Direction)PlacementRotation),
             "inserter" => SpriteGenerator.Instance.GenerateInserter(false),
             "long_inserter" => SpriteGenerator.Instance.GenerateInserter(true),
+            "assembler_mk1" => SpriteGenerator.Instance.GenerateAssembler(1),
+            "assembler_mk2" => SpriteGenerator.Instance.GenerateAssembler(2),
             "solar_panel" => SpriteGenerator.Instance.GenerateSolarPanel(),
             "lab" => SpriteGenerator.Instance.GenerateLab(),
+            "foundation" => SpriteGenerator.Instance.GenerateFoundation(),
             _ => SpriteGenerator.Instance.GenerateBuilding(new Color(0.4f, 0.4f, 0.5f), buildingDef.Size)
         };
     }
@@ -336,6 +374,8 @@ public partial class BuildingManager : Node
             "transport_belt" => new ConveyorBelt(),
             "inserter" => new Inserter(),
             "long_inserter" => new Inserter { IsLong = true },
+            "assembler_mk1" => new Assembler { Tier = 1 },
+            "assembler_mk2" => new Assembler { Tier = 2 },
             "lab" => new Lab(),
             _ => new BuildingEntity()
         };
@@ -468,9 +508,24 @@ public partial class BuildingManager : Node
             Description = "Moves items over 2 tiles",
             Size = new Vector2I(1, 1),
             Category = Enums.BuildingCategory.Transport,
-            RequiredTechnology = "automation",
+            RequiredTechnology = "automation_1",
             BuildCostIds = new[] { "iron_gear", "iron_plate", "electronic_circuit" },
             BuildCostCounts = new[] { 1, 1, 1 }
+        });
+
+        // Assembler Mk1
+        RegisterBuilding(new BuildingResource
+        {
+            Id = "assembler_mk1",
+            Name = "Assembler Mk1",
+            Description = "Automatically crafts items from recipes",
+            Size = new Vector2I(2, 2),
+            Category = Enums.BuildingCategory.Processing,
+            CraftingSpeed = 0.5f,
+            MaxIngredients = 2,
+            RequiredTechnology = "automation_1",
+            BuildCostIds = new[] { "iron_gear", "iron_plate", "electronic_circuit" },
+            BuildCostCounts = new[] { 5, 9, 3 }
         });
 
         // Solar Panel
@@ -499,6 +554,20 @@ public partial class BuildingManager : Node
             CanRotate = false,
             BuildCostIds = new[] { "iron_plate", "copper_plate", "electronic_circuit" },
             BuildCostCounts = new[] { 10, 10, 10 }
+        });
+
+        // Foundation (special - expands station)
+        RegisterBuilding(new BuildingResource
+        {
+            Id = "foundation",
+            Name = "Foundation",
+            Description = "Expands the station. Place adjacent to existing foundation.",
+            Size = new Vector2I(1, 1),
+            Category = Enums.BuildingCategory.Foundation,
+            CanRotate = false,
+            RequiredTechnology = "station_expansion",
+            BuildCostIds = new[] { "foundation" },
+            BuildCostCounts = new[] { 1 }
         });
     }
 }

@@ -13,11 +13,13 @@ This document provides everything needed to continue development from Phase 2 to
 5. Select a building and click to place
 6. Press 'R' to rotate while placing
 7. Right-click to remove buildings
-8. Review `ROADMAP.md` for Phase 3 tasks
+8. Press 'T' to open Research UI
+9. Press 'C' to open Crafting UI
+10. Review `ROADMAP.md` for remaining Phase 3 tasks
 
 ---
 
-## What's Been Built (Phase 1 + Phase 2)
+## What's Been Built (Phase 1 + Phase 2 + Phase 3 Progress)
 
 ### Core Architecture
 All systems use **autoload singletons** configured in `project.godot`. Access them via static `Instance` property:
@@ -26,7 +28,7 @@ All systems use **autoload singletons** configured in `project.godot`. Access th
 - `InventoryManager.Instance` - Player inventory, item registry
 - `CraftingManager.Instance` - Recipe registry, hand-crafting queue
 - `DebrisManager.Instance` - Debris spawning and collection
-- `ResearchManager.Instance` - Tech tree (ready but no UI)
+- `ResearchManager.Instance` - Tech tree with 8 technologies, research progress tracking
 - `PowerManager.Instance` - Power network simulation
 - `BuildingManager.Instance` - Building registry, placement, removal
 
@@ -47,8 +49,10 @@ All systems use **autoload singletons** configured in `project.godot`. Access th
 | Small Chest | 1x1 | 16-slot storage |
 | Transport Belt | 1x1 | Moves items, auto-connects |
 | Inserter | 1x1 | Transfers items between buildings |
-| Long Inserter | 1x1 | Reaches 2 tiles (requires research) |
-| Solar Panel | 2x2 | Power generation (requires research) |
+| Long Inserter | 1x1 | Reaches 2 tiles (requires automation_1 research) |
+| Solar Panel | 2x2 | Power generation (requires solar_energy research) |
+| Lab | 2x2 | Consumes science packs for research progress |
+| Assembler Mk1 | 2x2 | Auto-crafts items from recipes (requires automation_1 research) |
 
 #### BuildingManager Singleton
 - Building registry with `GetBuilding(id)` and `GetAllBuildings()`
@@ -66,9 +70,13 @@ All systems use **autoload singletons** configured in `project.godot`. Access th
 #### Controls
 - **B** - Toggle build menu
 - **R** - Rotate building (while placing)
+- **T** - Toggle Research UI (tech tree)
+- **C** - Toggle Crafting UI (hand-craft items)
+- **I** - Toggle Inventory
 - **Left-click** - Place building (in build mode) / Interact
+- **Shift+Left-click** - Stack transfer (move entire stack between inventories)
 - **Right-click** - Cancel build mode / Remove building
-- **Escape** - Exit build mode
+- **Escape** - Exit build mode / Close UI panels
 
 ---
 
@@ -81,8 +89,13 @@ All systems use **autoload singletons** configured in `project.godot`. Access th
 | `scripts/csharp/SmallChest.cs` | Storage with 16 inventory slots |
 | `scripts/csharp/ConveyorBelt.cs` | Item transport with auto-connection |
 | `scripts/csharp/Inserter.cs` | Item transfer with swing animation |
+| `scripts/csharp/Lab.cs` | 2x2 research building, consumes science packs |
+| `scripts/csharp/Assembler.cs` | 2x2 auto-crafter with tier system |
 | `scripts/csharp/BuildingManager.cs` | Building placement and registry |
+| `scripts/csharp/ResearchManager.cs` | Tech tree, research progress, unlocks |
 | `scripts/csharp/BuildMenuUI.cs` | Build menu interface |
+| `scripts/csharp/ResearchUI.cs` | Research panel with tech tree |
+| `scripts/csharp/RecipeUI.cs` | Hand-crafting panel |
 
 ---
 
@@ -120,36 +133,39 @@ private ItemStack _outputSlot;    // Plates come out here
 
 ---
 
-## Phase 3 Tasks (from ROADMAP.md)
+## Phase 3 Status (from ROADMAP.md)
 
-### 3.1 Research System UI
-- Create research/tech tree panel (toggle with T)
-- Show available and locked technologies
-- Research progress display
-- Lab building to consume science packs
+### ✓ 3.1 Research System UI (COMPLETE)
+- ✓ Research/tech tree panel (toggle with T) - `ResearchUI.cs`
+- ✓ Show available and locked technologies with status icons
+- ✓ Research progress display with progress bar
+- ✓ Lab building to consume science packs - `Lab.cs`
 
-### 3.2 Science Packs
-- Create Automation Science Pack item
-- Recipe for science pack crafting
-- Lab consumes packs for research progress
+### ✓ 3.2 Science Packs (COMPLETE)
+- ✓ Automation Science Pack (red) - item registered in InventoryManager
+- ✓ Logistic Science Pack (green) - item registered in InventoryManager
+- ✓ Recipes for science pack crafting in CraftingManager
+- ✓ Lab consumes packs for research progress
 
-### 3.3 Station Expansion
+### 3.3 Station Expansion (NOT STARTED)
 - Foundation item + recipe
 - Allow placing foundation adjacent to existing
 - Expand buildable area
 
-### 3.4 Assembler Building
-- Multi-ingredient crafting machine
-- Recipe selection UI
-- Faster than hand-crafting
+### ✓ 3.4 Assembler Building (PARTIAL)
+- ✓ Assembler Mk1 entity with tier system - `Assembler.cs`
+- ✗ Recipe selection UI (needed)
+- ✓ Multi-input handling (4 slots)
+- ✓ Crafting progress display
 
-### 3.5 More Buildings
-- Fast Inserter (research unlock)
-- Underground Belt
-- Splitter
-- Medium Chest
+### 3.5 More Buildings (PARTIAL)
+- ✓ Long Inserter (unlocked by automation_1 research)
+- Fast Inserter (not started)
+- Underground Belt (not started)
+- Splitter (not started)
+- Medium Chest (not started)
 
-### 3.6 Debris Collector Building
+### 3.6 Debris Collector Building (NOT STARTED)
 - Automatic debris collection
 - Range visualization
 - Output to belts/chests
@@ -213,29 +229,34 @@ SpriteGenerator.Instance.GenerateSolarPanel()              // 64x64 (2x2)
 
 2. **Belt corners** - Belts only go straight; corner/turn pieces not yet implemented.
 
-3. **No crafting UI** - Hand-crafting queue exists but no UI to trigger it (Phase 1 leftover).
+3. **Collection feedback** - Debris still lacks particle effects on collection.
 
-4. **Collection feedback** - Debris still lacks particle effects on collection.
+4. **Assembler recipe selection** - Assembler building works but has no UI to select which recipe to craft.
 
-5. **Building UI** - No UI for interacting with placed buildings (e.g., seeing furnace contents).
-
-6. **Research gating** - Technology requirements checked but most buildings are available by default for testing.
+5. **Research unlock propagation** - Technology unlocks work for buildings in build menu but recipe unlocks may need verification.
 
 ---
 
 ## Testing Checklist
 
-Before starting Phase 3 work, verify:
+Before continuing Phase 3 work, verify:
 - [ ] Game runs without errors (build with `dotnet build` first)
 - [ ] Press B opens build menu
+- [ ] Press T opens Research UI
+- [ ] Press C opens Crafting UI
 - [ ] Can place Stone Furnace (costs 5 stone)
 - [ ] Can place Small Chest (costs 2 iron plates)
 - [ ] Can place Transport Belt (costs 1 gear + 1 iron plate)
 - [ ] Can place Inserter (costs 1 gear + 1 plate + 1 circuit)
+- [ ] Can place Lab (costs 10 iron + 10 copper + 10 circuits)
 - [ ] R rotates building preview
 - [ ] Right-click removes buildings (refunds materials)
 - [ ] Buildings appear on station grid
 - [ ] Furnace smelts ore when given fuel and input
+- [ ] Can research Automation via Research UI
+- [ ] After researching Automation, Long Inserter and Assembler Mk1 appear in build menu
+- [ ] Lab consumes science packs when research is active
+- [ ] Shift+click transfers full stacks in building inventories
 
 ---
 
@@ -251,17 +272,21 @@ scripts/csharp/BuildingManager.cs    - Building placement
 scripts/csharp/InventoryManager.cs   - Player inventory
 scripts/csharp/CraftingManager.cs    - Recipes and crafting
 scripts/csharp/DebrisManager.cs      - Debris spawning
-scripts/csharp/ResearchManager.cs    - Tech tree
+scripts/csharp/ResearchManager.cs    - Tech tree (8 technologies)
 scripts/csharp/PowerManager.cs       - Power networks
 scripts/csharp/BuildingEntity.cs     - Building base class
 scripts/csharp/StoneFurnace.cs       - Furnace building
 scripts/csharp/SmallChest.cs         - Chest building
 scripts/csharp/ConveyorBelt.cs       - Belt building
 scripts/csharp/Inserter.cs           - Inserter building
+scripts/csharp/Lab.cs                - Lab building (research)
+scripts/csharp/Assembler.cs          - Assembler building (auto-craft)
 scripts/csharp/HUD.cs                - Hotbar and resource display
 scripts/csharp/InventoryUI.cs        - Inventory panel
 scripts/csharp/BuildMenuUI.cs        - Build menu
 scripts/csharp/BuildingUI.cs         - Building interaction UI
+scripts/csharp/ResearchUI.cs         - Research/tech tree panel
+scripts/csharp/RecipeUI.cs           - Hand-crafting panel
 scripts/csharp/Enums.cs              - Game enums
 scripts/csharp/Constants.cs          - Game constants
 scripts/csharp/ItemStack.cs          - Item stack class

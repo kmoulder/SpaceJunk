@@ -6,7 +6,7 @@ This document describes the technical architecture for Space Factory, built in G
 
 > **Note:** The codebase was converted from GDScript to C# for performance reasons. All scripts are now in `scripts/csharp/`.
 
-## Implementation Status (Phase 2 Complete)
+## Implementation Status (Phase 3 In Progress)
 
 ### Implemented Files - Core (C#)
 | File | Status | Notes |
@@ -37,6 +37,8 @@ This document describes the technical architecture for Space Factory, built in G
 | `scripts/csharp/SmallChest.cs` | Complete | 1x1 storage with 16 slots |
 | `scripts/csharp/ConveyorBelt.cs` | Complete | 1x1 belt with item transport |
 | `scripts/csharp/Inserter.cs` | Complete | 1x1 item transfer with swing |
+| `scripts/csharp/Lab.cs` | Complete | 2x2 research building, consumes science packs |
+| `scripts/csharp/Assembler.cs` | Complete | 2x2 auto-crafter with tier system |
 
 ### Implemented Files - UI
 | File | Status | Notes |
@@ -44,7 +46,9 @@ This document describes the technical architecture for Space Factory, built in G
 | `scripts/csharp/HUD.cs` | Complete | Hotbar, resource display |
 | `scripts/csharp/InventoryUI.cs` | Complete | 40-slot inventory grid |
 | `scripts/csharp/BuildMenuUI.cs` | Complete | Building selection by category |
-| `scripts/csharp/BuildingUI.cs` | Complete | Building interaction panel |
+| `scripts/csharp/BuildingUI.cs` | Complete | Building interaction panel, shift+click stack transfer |
+| `scripts/csharp/ResearchUI.cs` | Complete | Tech tree panel, toggle with 'T' |
+| `scripts/csharp/RecipeUI.cs` | Complete | Hand-crafting panel, toggle with 'C' |
 
 ### Implemented Files - Resources
 | File | Status | Notes |
@@ -64,11 +68,8 @@ This document describes the technical architecture for Space Factory, built in G
 | File | Phase | Notes |
 |------|-------|-------|
 | `scripts/csharp/SaveManager.cs` | Phase 5 | Save/load system |
-| `scripts/csharp/CraftingUI.cs` | Deferred | Hand-craft UI panel |
-| `scripts/csharp/ResearchUI.cs` | Phase 3 | Tech tree UI |
-| `scripts/csharp/Assembler.cs` | Phase 3 | Multi-ingredient crafting |
-| `scripts/csharp/Lab.cs` | Phase 3 | Science pack consumer |
 | `scripts/csharp/DebrisCollector.cs` | Phase 3 | Auto debris collection |
+| `scripts/csharp/AssemblerUI.cs` | Phase 3 | Recipe selection for assemblers |
 
 ---
 
@@ -392,7 +393,9 @@ public partial class DebrisEntity : Area2D
 - **StoneFurnace** - 2x2 smelter with fuel, input, and output slots
 - **SmallChest** - 1x1 storage with 16 inventory slots
 - **ConveyorBelt** - 1x1 item transport, auto-connects to adjacent belts
-- **Inserter** - 1x1 item transfer with swing animation
+- **Inserter** - 1x1 item transfer with swing animation, long variant available
+- **Lab** - 2x2 research building, consumes science packs for research progress
+- **Assembler** - 2x2 auto-crafter with tier system (Mk1/Mk2), 4 input slots + 1 output
 
 ---
 
@@ -417,7 +420,9 @@ Main (Node2D) - Main.cs
 │   └── Tooltip
 ├── InventoryUI (CanvasLayer) - InventoryUI.cs
 ├── BuildMenuUI (CanvasLayer) - BuildMenuUI.cs
-└── BuildingUI (CanvasLayer) - BuildingUI.cs
+├── BuildingUI (CanvasLayer) - BuildingUI.cs
+├── ResearchUI (CanvasLayer) - ResearchUI.cs (toggle with 'T')
+└── RecipeUI (CanvasLayer) - RecipeUI.cs (toggle with 'C')
 ```
 
 ---
@@ -474,6 +479,8 @@ GameManager.Instance.GameTick += OnGameTick;
 - `move_up/down/left/right` -> WASD / Arrows
 - `zoom_in/out` -> Mouse Wheel
 - `build_menu` -> B
+- `research` -> T (opens Research UI)
+- `crafting` -> C (opens Crafting UI)
 
 ---
 
@@ -503,10 +510,14 @@ scripts/csharp/
 ├── SmallChest.cs               ✓ Chest building
 ├── ConveyorBelt.cs             ✓ Belt building
 ├── Inserter.cs                 ✓ Inserter building
+├── Lab.cs                      ✓ Lab building (research)
+├── Assembler.cs                ✓ Assembler building (auto-craft)
 ├── HUD.cs                      ✓ HUD UI
 ├── InventoryUI.cs              ✓ Inventory UI
 ├── BuildMenuUI.cs              ✓ Build menu UI
 ├── BuildingUI.cs               ✓ Building interaction UI
+├── ResearchUI.cs               ✓ Research/tech tree UI
+├── RecipeUI.cs                 ✓ Hand-crafting UI
 └── Main.cs                     ✓ Main scene controller
 
 scenes/

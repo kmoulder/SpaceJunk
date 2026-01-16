@@ -57,7 +57,7 @@ This document outlines the phased implementation plan for Space Factory. Each ph
 - [x] RecipeResource definition
 - [x] CraftingManager singleton
 - [x] Basic recipes (ore → plate, gears, cables, circuits)
-- [ ] Crafting UI panel
+- [x] Crafting UI panel (RecipeUI.cs, toggle with 'C')
 
 **Phase 1 Deliverable**: Player can collect drifting debris, store items in inventory, and hand-craft basic materials.
 
@@ -111,22 +111,22 @@ This document outlines the phased implementation plan for Space Factory. Each ph
 
 ---
 
-## Phase 3: Research & Expansion
+## Phase 3: Research & Expansion *(In Progress)*
 
 **Goal**: Tech tree progression and station expansion
 
 ### 3.1 Research System
-- [ ] TechnologyResource definition
-- [ ] ResearchManager singleton
-- [ ] Lab building
-- [ ] Research UI (tech tree view)
-- [ ] Research progress tracking
+- [x] TechnologyResource definition (scripts/csharp/TechnologyResource.cs)
+- [x] ResearchManager singleton (8 technologies defined with prerequisites)
+- [x] Lab building (Lab.cs, 2x2, consumes science packs)
+- [x] Research UI (ResearchUI.cs, toggle with 'T')
+- [x] Research progress tracking (AddScience(), progress bar)
 
 ### 3.2 Science Packs
-- [ ] Automation Science Pack (red)
-- [ ] Logistic Science Pack (green)
-- [ ] Science pack recipes
-- [ ] Lab consumption mechanics
+- [x] Automation Science Pack (red) - item registered
+- [x] Logistic Science Pack (green) - item registered
+- [x] Science pack recipes (CraftingManager: copper_plate+iron_gear, inserter+transport_belt)
+- [x] Lab consumption mechanics (1 pack per second when researching)
 
 ### 3.3 Station Expansion
 - [ ] Foundation item
@@ -135,13 +135,13 @@ This document outlines the phased implementation plan for Space Factory. Each ph
 - [ ] Station boundary detection
 
 ### 3.4 Assembler Building
-- [ ] Assembler Mk1 entity
+- [x] Assembler Mk1 entity (Assembler.cs, tier system)
 - [ ] Recipe selection UI
-- [ ] Multi-input handling
-- [ ] Crafting progress display
+- [x] Multi-input handling (4 input slots)
+- [x] Crafting progress display (GetCraftingProgress())
 
 ### 3.5 More Buildings
-- [ ] Long Inserter
+- [x] Long Inserter (unlocked by automation_1 research)
 - [ ] Fast Inserter
 - [ ] Underground Belt
 - [ ] Splitter
@@ -291,19 +291,26 @@ This document outlines the phased implementation plan for Space Factory. Each ph
 
 **Active Phase**: Phase 3 - Research & Expansion
 
+**Completed in Phase 3**:
+1. ✓ Research system (TechnologyResource, ResearchManager with 8 techs)
+2. ✓ Research UI (ResearchUI.cs, toggle with 'T', shows tech tree with progress)
+3. ✓ Lab building (2x2, consumes science packs, feeds ResearchManager)
+4. ✓ Science packs (red/green items and crafting recipes)
+5. ✓ Assembler Mk1 (Assembler.cs with tier system and 4 input slots)
+6. ✓ Long Inserter (unlocked via automation_1 research)
+7. ✓ Crafting UI (RecipeUI.cs, toggle with 'C', hand-crafting panel)
+
 **Remaining from Phase 1/2**:
 1. Collection feedback (particles/sounds when clicking debris)
-2. Crafting UI panel for hand-crafting
-3. Belt drag-placement (place multiple in a line)
-4. Filter inserter variant
-5. Power pole placement and network visualization
+2. Belt drag-placement (place multiple in a line)
+3. Filter inserter variant
+4. Power pole placement and network visualization
 
-**Next Phase Preview** (Phase 3):
-1. Research UI (tech tree panel)
-2. Lab building for science pack consumption
-3. Assembler building for automated crafting
-4. Station expansion with foundation placement
-5. Debris collector building
+**Remaining in Phase 3**:
+1. Assembler recipe selection UI (click to choose what to craft)
+2. Station expansion with foundation placement
+3. Fast Inserter, Underground Belt, Splitter, Medium Chest
+4. Debris collector building
 
 ---
 

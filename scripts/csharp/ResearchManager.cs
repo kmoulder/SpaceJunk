@@ -332,7 +332,8 @@ public partial class ResearchManager : Node
 
         RegisterTechnology(CreateTech("station_expansion", "Station Expansion",
             "Unlocks Foundation crafting for station expansion",
-            new[] { "automation_1" }, new[] { "automation_science" }, new[] { 25 }));
+            new[] { "steel_processing" }, new[] { "automation_science" }, new[] { 25 },
+            new[] { "foundation" }, new[] { "foundation" }));
     }
 
     /// <summary>

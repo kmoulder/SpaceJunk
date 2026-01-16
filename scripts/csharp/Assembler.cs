@@ -107,7 +107,8 @@ public partial class Assembler : BuildingEntity
     /// </summary>
     public void SetRecipe(RecipeResource recipe)
     {
-        if (recipe == null || recipe.CraftingType != Enums.CraftingType.Assembler)
+        // Accept both Assembler and Player recipes (assemblers can automate hand-craftable items)
+        if (recipe == null || (recipe.CraftingType != Enums.CraftingType.Assembler && recipe.CraftingType != Enums.CraftingType.Player))
             return;
 
         // Can only change recipe when not crafting

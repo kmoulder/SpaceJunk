@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Space Factory")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f397589330543709b2e16178f0223b8d3c0346f7")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7469639dd2280a3f94938a809a07e5dab948da3c")]
 [assembly: System.Reflection.AssemblyProductAttribute("Space Factory")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Space Factory")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

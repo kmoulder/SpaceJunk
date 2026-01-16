@@ -301,6 +301,9 @@ public partial class InventoryManager : Node
         // Science packs
         RegisterItem(CreateItem("automation_science", "Automation Science Pack", Enums.ItemCategory.Science, new Color(0.8f, 0.2f, 0.2f)));
         RegisterItem(CreateItem("logistic_science", "Logistic Science Pack", Enums.ItemCategory.Science, new Color(0.2f, 0.8f, 0.2f)));
+
+        // Building materials
+        RegisterItem(CreateItem("foundation", "Foundation", Enums.ItemCategory.Processed, new Color(0.35f, 0.35f, 0.4f)));
     }
 
     /// <summary>

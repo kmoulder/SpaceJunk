@@ -38,6 +38,11 @@ public partial class GameManager : Node
     public Enums.GameState CurrentState { get; private set; } = Enums.GameState.MainMenu;
 
     /// <summary>
+    /// Whether the game is paused (separate from state, so UI/building can work while paused)
+    /// </summary>
+    public bool Paused { get; private set; } = false;
+
+    /// <summary>
     /// Current game speed multiplier
     /// </summary>
     public float GameSpeed { get; private set; } = 1.0f;
@@ -70,7 +75,10 @@ public partial class GameManager : Node
 
     public override void _Process(double delta)
     {
-        // Game continues running in Playing and Building states
+        // Don't process ticks if paused or not in a playing state
+        if (Paused)
+            return;
+
         if (CurrentState != Enums.GameState.Playing && CurrentState != Enums.GameState.Building)
             return;
 
@@ -128,12 +136,15 @@ public partial class GameManager : Node
     }
 
     /// <summary>
-    /// Pause the game
+    /// Pause the game (stops tick processing but UI still works)
     /// </summary>
     public void PauseGame()
     {
-        if (CurrentState == Enums.GameState.Playing)
-            SetGameState(Enums.GameState.Paused);
+        if (!Paused)
+        {
+            Paused = true;
+            EmitSignal(SignalName.GamePaused);
+        }
     }
 
     /// <summary>
@@ -141,8 +152,11 @@ public partial class GameManager : Node
     /// </summary>
     public void ResumeGame()
     {
-        if (CurrentState == Enums.GameState.Paused)
-            SetGameState(Enums.GameState.Playing);
+        if (Paused)
+        {
+            Paused = false;
+            EmitSignal(SignalName.GameResumed);
+        }
     }
 
     /// <summary>
@@ -150,18 +164,18 @@ public partial class GameManager : Node
     /// </summary>
     public void TogglePause()
     {
-        if (CurrentState == Enums.GameState.Playing)
-            PauseGame();
-        else if (CurrentState == Enums.GameState.Paused)
+        if (Paused)
             ResumeGame();
+        else
+            PauseGame();
     }
 
     /// <summary>
-    /// Check if game is currently playing
+    /// Check if game is currently playing (not paused and in playing state)
     /// </summary>
     public bool IsPlaying()
     {
-        return CurrentState == Enums.GameState.Playing;
+        return !Paused && (CurrentState == Enums.GameState.Playing || CurrentState == Enums.GameState.Building);
     }
 
     /// <summary>
@@ -169,7 +183,7 @@ public partial class GameManager : Node
     /// </summary>
     public bool IsPaused()
     {
-        return CurrentState == Enums.GameState.Paused;
+        return Paused;
     }
 
     /// <summary>
