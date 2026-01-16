@@ -25,3 +25,4 @@ res://scripts/csharp/StoneFurnace.cs
 res://scripts/csharp/TechnologyResource.cs
 res://scripts/csharp/Lab.cs
 res://scripts/csharp/ResearchUI.cs
+res://scripts/csharp/RecipeUI.cs

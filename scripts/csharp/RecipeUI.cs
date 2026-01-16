@@ -35,10 +35,83 @@ public partial class RecipeUI : CanvasLayer
     /// </summary>
     private readonly Dictionary<string, Button> _filterButtons = new();
 
+    /// <summary>
+    /// Crafting progress bar
+    /// </summary>
+    private ProgressBar _craftingProgressBar;
+
+    /// <summary>
+    /// Crafting status label
+    /// </summary>
+    private Label _craftingStatusLabel;
+
     public override void _Ready()
     {
         CreateUIStructure();
+        ConnectSignals();
         Visible = false;
+    }
+
+    private void ConnectSignals()
+    {
+        if (CraftingManager.Instance != null)
+        {
+            CraftingManager.Instance.CraftStarted += OnCraftStarted;
+            CraftingManager.Instance.CraftProgressChanged += OnCraftProgressChanged;
+            CraftingManager.Instance.CraftCompleted += OnCraftCompleted;
+        }
+        if (InventoryManager.Instance != null)
+        {
+            InventoryManager.Instance.InventoryChanged += OnInventoryChanged;
+        }
+    }
+
+    private void OnCraftStarted(RecipeResource recipe)
+    {
+        UpdateCraftingStatus();
+        RefreshRecipeList();
+    }
+
+    private void OnCraftProgressChanged(RecipeResource recipe, float progress)
+    {
+        if (_craftingProgressBar != null)
+        {
+            _craftingProgressBar.Value = progress * 100;
+        }
+    }
+
+    private void OnCraftCompleted(RecipeResource recipe)
+    {
+        UpdateCraftingStatus();
+        RefreshRecipeList();
+    }
+
+    private void OnInventoryChanged()
+    {
+        if (Visible)
+        {
+            RefreshRecipeList();
+        }
+    }
+
+    private void UpdateCraftingStatus()
+    {
+        if (_craftingStatusLabel == null || _craftingProgressBar == null)
+            return;
+
+        if (CraftingManager.Instance?.IsCrafting == true && CraftingManager.Instance.CraftQueue.Count > 0)
+        {
+            var currentRecipe = CraftingManager.Instance.CraftQueue[0];
+            _craftingStatusLabel.Text = $"Crafting: {currentRecipe.Name}";
+            _craftingProgressBar.Visible = true;
+            _craftingProgressBar.Value = CraftingManager.Instance.CraftProgress * 100;
+        }
+        else
+        {
+            _craftingStatusLabel.Text = "Not crafting";
+            _craftingProgressBar.Visible = false;
+            _craftingProgressBar.Value = 0;
+        }
     }
 
     private void CreateUIStructure()
@@ -89,6 +162,45 @@ public partial class RecipeUI : CanvasLayer
         vbox.AddChild(_filterContainer);
 
         CreateFilterButtons();
+
+        // Separator
+        vbox.AddChild(new HSeparator());
+
+        // Crafting status panel
+        var craftingPanel = new PanelContainer();
+        var craftingPanelStyle = new StyleBoxFlat { BgColor = new Color(0.15f, 0.15f, 0.2f) };
+        craftingPanelStyle.SetCornerRadiusAll(4);
+        craftingPanel.AddThemeStyleboxOverride("panel", craftingPanelStyle);
+        vbox.AddChild(craftingPanel);
+
+        var craftingMargin = new MarginContainer();
+        craftingMargin.AddThemeConstantOverride("margin_left", 8);
+        craftingMargin.AddThemeConstantOverride("margin_right", 8);
+        craftingMargin.AddThemeConstantOverride("margin_top", 6);
+        craftingMargin.AddThemeConstantOverride("margin_bottom", 6);
+        craftingPanel.AddChild(craftingMargin);
+
+        var craftingVbox = new VBoxContainer();
+        craftingVbox.AddThemeConstantOverride("separation", 4);
+        craftingMargin.AddChild(craftingVbox);
+
+        _craftingStatusLabel = new Label
+        {
+            Text = "Not crafting",
+            HorizontalAlignment = HorizontalAlignment.Center
+        };
+        _craftingStatusLabel.AddThemeFontSizeOverride("font_size", 12);
+        craftingVbox.AddChild(_craftingStatusLabel);
+
+        _craftingProgressBar = new ProgressBar
+        {
+            CustomMinimumSize = new Vector2(0, 16),
+            MinValue = 0,
+            MaxValue = 100,
+            Value = 0,
+            Visible = false
+        };
+        craftingVbox.AddChild(_craftingProgressBar);
 
         // Separator
         vbox.AddChild(new HSeparator());
@@ -358,7 +470,75 @@ public partial class RecipeUI : CanvasLayer
             vbox.AddChild(techLabel);
         }
 
+        // Add Craft button for hand-craftable recipes
+        if (isUnlocked && recipe.CraftingType == Enums.CraftingType.Player)
+        {
+            var buttonHbox = new HBoxContainer();
+            buttonHbox.AddThemeConstantOverride("separation", 8);
+            vbox.AddChild(buttonHbox);
+
+            // Spacer
+            var spacer = new Control { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+            buttonHbox.AddChild(spacer);
+
+            // Check if can craft
+            bool canCraft = CraftingManager.Instance?.CanCraft(recipe) ?? false;
+
+            var craftBtn = new Button
+            {
+                Text = "Craft",
+                CustomMinimumSize = new Vector2(60, 24),
+                Disabled = !canCraft
+            };
+
+            var craftBtnStyle = new StyleBoxFlat { BgColor = canCraft ? new Color(0.2f, 0.4f, 0.3f) : new Color(0.25f, 0.25f, 0.25f) };
+            craftBtnStyle.SetCornerRadiusAll(4);
+            craftBtn.AddThemeStyleboxOverride("normal", craftBtnStyle);
+
+            var craftBtnHoverStyle = new StyleBoxFlat { BgColor = new Color(0.3f, 0.5f, 0.4f) };
+            craftBtnHoverStyle.SetCornerRadiusAll(4);
+            craftBtn.AddThemeStyleboxOverride("hover", craftBtnHoverStyle);
+
+            var craftBtnDisabledStyle = new StyleBoxFlat { BgColor = new Color(0.2f, 0.2f, 0.2f) };
+            craftBtnDisabledStyle.SetCornerRadiusAll(4);
+            craftBtn.AddThemeStyleboxOverride("disabled", craftBtnDisabledStyle);
+
+            RecipeResource capturedRecipe = recipe;
+            craftBtn.Pressed += () => OnCraftPressed(capturedRecipe);
+            buttonHbox.AddChild(craftBtn);
+
+            // Craft x5 button
+            var craft5Btn = new Button
+            {
+                Text = "x5",
+                CustomMinimumSize = new Vector2(40, 24),
+                Disabled = !canCraft
+            };
+            craft5Btn.AddThemeStyleboxOverride("normal", craftBtnStyle);
+            craft5Btn.AddThemeStyleboxOverride("hover", craftBtnHoverStyle);
+            craft5Btn.AddThemeStyleboxOverride("disabled", craftBtnDisabledStyle);
+            craft5Btn.Pressed += () => OnCraftPressed(capturedRecipe, 5);
+            buttonHbox.AddChild(craft5Btn);
+        }
+
         return panel;
+    }
+
+    private void OnCraftPressed(RecipeResource recipe, int count = 1)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            if (CraftingManager.Instance?.CanCraft(recipe) == true)
+            {
+                CraftingManager.Instance.QueueCraft(recipe);
+            }
+            else
+            {
+                break;
+            }
+        }
+        UpdateCraftingStatus();
+        RefreshRecipeList();
     }
 
     public void Toggle()
@@ -367,6 +547,7 @@ public partial class RecipeUI : CanvasLayer
         if (Visible)
         {
             RefreshRecipeList();
+            UpdateCraftingStatus();
         }
     }
 
