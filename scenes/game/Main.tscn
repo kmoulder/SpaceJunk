@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3 uid="uid://main_scene"]
+[gd_scene load_steps=6 format=3 uid="uid://main_scene"]
 
 [ext_resource type="Script" path="res://scripts/game/Main.gd" id="1_main"]
 [ext_resource type="Script" path="res://scripts/ui/HUD.gd" id="2_hud"]
 [ext_resource type="Script" path="res://scripts/ui/InventoryUI.gd" id="3_inventory"]
 [ext_resource type="Script" path="res://scripts/ui/BuildMenuUI.gd" id="4_buildmenu"]
+[ext_resource type="Script" path="res://scripts/ui/BuildingUI.gd" id="5_buildingui"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_main")
@@ -130,3 +131,8 @@ columns = 10
 visible = false
 layer = 15
 script = ExtResource("4_buildmenu")
+
+[node name="BuildingUI" type="CanvasLayer" parent="."]
+visible = false
+layer = 18
+script = ExtResource("5_buildingui")

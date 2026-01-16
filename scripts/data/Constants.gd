@@ -3,7 +3,7 @@ extends RefCounted
 
 ## Grid and tile settings
 const TILE_SIZE: int = 32
-const STARTING_STATION_SIZE: int = 3  # 3x3 starting grid
+const STARTING_STATION_SIZE: int = 9  # 9x9 starting grid
 
 ## Inventory settings
 const PLAYER_INVENTORY_SLOTS: int = 40

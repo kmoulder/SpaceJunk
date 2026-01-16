@@ -170,6 +170,25 @@ func set_slot(index: int, stack: ItemStack) -> void:
 		inventory_changed.emit()
 
 
+## Remove item from a specific slot
+func remove_item_at(index: int, count: int = 1) -> bool:
+	if index < 0 or index >= inventory.size():
+		return false
+
+	var slot := inventory[index]
+	if slot.is_empty():
+		return false
+
+	var removed := slot.remove(count)
+	if removed > 0:
+		item_removed.emit(slot.item, removed, index)
+		if slot.count <= 0:
+			slot.item = null
+		inventory_changed.emit()
+		return true
+	return false
+
+
 ## Swap two inventory slots
 func swap_slots(index_a: int, index_b: int) -> void:
 	if index_a < 0 or index_a >= inventory.size():

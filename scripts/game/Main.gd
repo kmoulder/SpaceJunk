@@ -14,6 +14,7 @@ extends Node2D
 @onready var hud: CanvasLayer = $HUD
 @onready var inventory_ui: CanvasLayer = $InventoryUI
 @onready var build_menu_ui: CanvasLayer = $BuildMenuUI
+@onready var building_ui: CanvasLayer = $BuildingUI
 
 ## Camera movement
 var camera_target_position: Vector2 = Vector2.ZERO
@@ -240,8 +241,10 @@ func _input(event: InputEvent) -> void:
 			BuildingManager.exit_build_mode()
 			get_viewport().set_input_as_handled()
 
-	# Handle clicking on game world
+	# Handle clicking on game world (only if no UI is blocking)
 	if event is InputEventMouseButton:
+		if _is_ui_blocking():
+			return
 		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 			_handle_left_click()
 		elif event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
@@ -300,12 +303,12 @@ func _handle_building_click(grid_pos: Vector2i) -> void:
 	if building == null:
 		return
 
-	# For now, just print info about the building
+	# Open building UI for buildings with inventory
 	if building is BuildingEntity:
 		var entity := building as BuildingEntity
-		var def := entity.get_definition()
-		if def:
-			print("Clicked on building: ", def.name)
+		# Check if building has inventory (chest, furnace, etc.)
+		if building is SmallChest or building is StoneFurnace:
+			building_ui.open_for_building(entity)
 
 
 func get_mouse_world_position() -> Vector2:
@@ -314,3 +317,14 @@ func get_mouse_world_position() -> Vector2:
 
 func get_mouse_grid_position() -> Vector2i:
 	return GridManager.world_to_grid(get_mouse_world_position())
+
+
+func _is_ui_blocking() -> bool:
+	# Check if any UI panel is open that should block world clicks
+	if inventory_ui.visible and inventory_ui.is_open:
+		return true
+	if building_ui.visible and building_ui.is_open:
+		return true
+	if build_menu_ui.visible:
+		return true
+	return false

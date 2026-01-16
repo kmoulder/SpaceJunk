@@ -9,7 +9,7 @@ extends CanvasLayer
 @onready var categories_container: HBoxContainer = $Panel/MarginContainer/VBoxContainer/Categories
 @onready var buildings_container: GridContainer = $Panel/MarginContainer/VBoxContainer/Buildings
 @onready var info_panel: PanelContainer = $Panel/MarginContainer/VBoxContainer/InfoPanel
-@onready var info_label: Label = $Panel/MarginContainer/VBoxContainer/InfoPanel/InfoLabel
+@onready var info_label: RichTextLabel = $Panel/MarginContainer/VBoxContainer/InfoPanel/InfoLabel
 
 ## Currently selected category
 var selected_category: Enums.BuildingCategory = Enums.BuildingCategory.PROCESSING
@@ -104,10 +104,12 @@ func _create_ui_structure() -> void:
 	info_style.set_corner_radius_all(4)
 	info_panel.add_theme_stylebox_override("panel", info_style)
 
-	info_label = Label.new()
+	info_label = RichTextLabel.new()
 	info_label.name = "InfoLabel"
-	info_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	info_label.add_theme_font_size_override("font_size", 12)
+	info_label.bbcode_enabled = true
+	info_label.fit_content = true
+	info_label.scroll_active = false
+	info_label.add_theme_font_size_override("normal_font_size", 12)
 	info_panel.add_child(info_label)
 
 

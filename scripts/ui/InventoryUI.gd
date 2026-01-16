@@ -15,10 +15,18 @@ var inventory_slots: Array[Panel] = []
 var dragging_from: int = -1
 var is_open: bool = false
 
+## Tooltip
+var tooltip: PanelContainer
+var tooltip_label: Label
+var hover_slot_index: int = -1
+var hover_time: float = 0.0
+const TOOLTIP_DELAY: float = 0.4  # seconds before showing tooltip
+
 
 func _ready() -> void:
 	_setup_panel()
 	_setup_inventory_grid()
+	_create_tooltip()
 	_connect_signals()
 	hide_inventory()
 
@@ -93,6 +101,26 @@ func _create_inventory_slot(index: int) -> Panel:
 	slot.mouse_exited.connect(_on_slot_unhover)
 
 	return slot
+
+
+func _create_tooltip() -> void:
+	tooltip = PanelContainer.new()
+	tooltip.visible = false
+	tooltip.z_index = 100
+	add_child(tooltip)
+
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.1, 0.1, 0.15, 0.95)
+	style.border_color = Constants.UI_BORDER
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(4)
+	style.set_content_margin_all(6)
+	tooltip.add_theme_stylebox_override("panel", style)
+
+	tooltip_label = Label.new()
+	tooltip_label.add_theme_font_size_override("font_size", 12)
+	tooltip_label.add_theme_color_override("font_color", Constants.UI_TEXT)
+	tooltip.add_child(tooltip_label)
 
 
 func _connect_signals() -> void:
@@ -188,19 +216,47 @@ func _highlight_slot(index: int, highlight: bool) -> void:
 	slot.add_theme_stylebox_override("panel", style)
 
 
+func _process(delta: float) -> void:
+	if not is_open:
+		return
+
+	# Handle tooltip delay
+	if hover_slot_index >= 0:
+		hover_time += delta
+		if hover_time >= TOOLTIP_DELAY and not tooltip.visible:
+			_show_tooltip()
+
+
 func _on_slot_hover(index: int) -> void:
-	var stack := InventoryManager.get_slot(index)
-	if stack and not stack.is_empty():
-		# Show tooltip
-		var tooltip_text := stack.item.name
-		if stack.count > 1:
-			tooltip_text += " x" + str(stack.count)
-		# TODO: Show tooltip via HUD
+	hover_slot_index = index
+	hover_time = 0.0
 
 
 func _on_slot_unhover() -> void:
-	# TODO: Hide tooltip
-	pass
+	hover_slot_index = -1
+	hover_time = 0.0
+	_hide_tooltip()
+
+
+func _show_tooltip() -> void:
+	var stack := InventoryManager.get_slot(hover_slot_index)
+	if stack == null or stack.is_empty():
+		return
+
+	var text := stack.item.name
+	if stack.count > 1:
+		text += " x" + str(stack.count)
+
+	tooltip_label.text = text
+	tooltip.visible = true
+
+	# Position near mouse
+	var mouse_pos := get_viewport().get_mouse_position()
+	tooltip.position = mouse_pos + Vector2(16, 16)
+
+
+func _hide_tooltip() -> void:
+	tooltip.visible = false
 
 
 func show_inventory() -> void:
@@ -215,6 +271,8 @@ func hide_inventory() -> void:
 	visible = false
 	is_open = false
 	dragging_from = -1
+	hover_slot_index = -1
+	_hide_tooltip()
 	closed.emit()
 	# Resume game
 	# GameManager.set_game_state(Enums.GameState.PLAYING)

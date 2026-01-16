@@ -5,3 +5,5 @@ res://scripts/systems/BuildingManager.gd
 res://scripts/entities/Inserter.gd
 res://scripts/ui/BuildMenuUI.gd
 res://scripts/systems/DebrisManager.gd
+res://scripts/data/Constants.gd
+res://scripts/systems/InventoryManager.gd
