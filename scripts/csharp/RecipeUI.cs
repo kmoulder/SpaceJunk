@@ -64,6 +64,19 @@ public partial class RecipeUI : CanvasLayer
         {
             InventoryManager.Instance.InventoryChanged += OnInventoryChanged;
         }
+        if (ResearchManager.Instance != null)
+        {
+            ResearchManager.Instance.TechnologyUnlocked += OnTechnologyUnlocked;
+        }
+    }
+
+    private void OnTechnologyUnlocked(TechnologyResource tech)
+    {
+        // Refresh display when a technology is unlocked to show newly available recipes
+        if (Visible)
+        {
+            RefreshRecipeList();
+        }
     }
 
     private void OnCraftStarted(RecipeResource recipe)
@@ -150,7 +163,7 @@ public partial class RecipeUI : CanvasLayer
         // Title
         var title = new Label
         {
-            Text = "Recipes (R)",
+            Text = "Crafting (C)",
             HorizontalAlignment = HorizontalAlignment.Center
         };
         title.AddThemeFontSizeOverride("font_size", 18);
@@ -553,7 +566,7 @@ public partial class RecipeUI : CanvasLayer
 
     public override void _Input(InputEvent @event)
     {
-        if (@event.IsActionPressed("recipes"))
+        if (@event.IsActionPressed("crafting"))
         {
             Toggle();
             GetViewport().SetInputAsHandled();

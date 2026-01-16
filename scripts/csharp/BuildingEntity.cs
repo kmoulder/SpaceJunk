@@ -301,7 +301,7 @@ public partial class BuildingEntity : Node2D
     /// <summary>
     /// Get a specific slot
     /// </summary>
-    public ItemStack GetSlot(int index)
+    public virtual ItemStack GetSlot(int index)
     {
         if (index >= 0 && index < InternalInventory.Count)
             return InternalInventory[index];

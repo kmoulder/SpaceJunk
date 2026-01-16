@@ -307,7 +307,8 @@ public partial class ResearchManager : Node
 
         RegisterTechnology(CreateTech("steel_processing", "Steel Processing",
             "Unlocks Steel Plate smelting",
-            new[] { "automation_1" }, new[] { "automation_science" }, new[] { 20 }));
+            new[] { "automation_1" }, new[] { "automation_science" }, new[] { 20 },
+            null, new[] { "steel_smelting" }));
 
         RegisterTechnology(CreateTech("automation_2", "Automation 2",
             "Unlocks Assembler Mk2 and Fast Inserter",
@@ -339,7 +340,7 @@ public partial class ResearchManager : Node
     /// </summary>
     private static TechnologyResource CreateTech(string id, string name, string description,
         string[] prerequisites, string[] packIds, int[] packCounts,
-        string[] buildingUnlocks = null)
+        string[] buildingUnlocks = null, string[] recipeUnlocks = null)
     {
         return new TechnologyResource
         {
@@ -349,7 +350,8 @@ public partial class ResearchManager : Node
             Prerequisites = prerequisites,
             SciencePackIds = packIds,
             SciencePackCounts = packCounts,
-            UnlocksBuildingIds = buildingUnlocks ?? System.Array.Empty<string>()
+            UnlocksBuildingIds = buildingUnlocks ?? System.Array.Empty<string>(),
+            UnlocksRecipeIds = recipeUnlocks ?? System.Array.Empty<string>()
         };
     }
 }

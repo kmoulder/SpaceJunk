@@ -70,7 +70,8 @@ public partial class GameManager : Node
 
     public override void _Process(double delta)
     {
-        if (CurrentState != Enums.GameState.Playing)
+        // Game continues running in Playing and Building states
+        if (CurrentState != Enums.GameState.Playing && CurrentState != Enums.GameState.Building)
             return;
 
         // Accumulate time and emit ticks

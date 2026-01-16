@@ -299,6 +299,8 @@ public partial class BuildMenuUI : CanvasLayer
             "transport_belt" => SpriteGenerator.Instance?.GenerateBelt(Enums.Direction.East),
             "inserter" => SpriteGenerator.Instance?.GenerateInserter(false),
             "long_inserter" => SpriteGenerator.Instance?.GenerateInserter(true),
+            "assembler_mk1" => SpriteGenerator.Instance?.GenerateAssembler(1),
+            "assembler_mk2" => SpriteGenerator.Instance?.GenerateAssembler(2),
             "solar_panel" => SpriteGenerator.Instance?.GenerateSolarPanel(),
             "lab" => SpriteGenerator.Instance?.GenerateLab(),
             _ => SpriteGenerator.Instance?.GenerateBuilding(new Color(0.4f, 0.4f, 0.5f), building.Size)
@@ -340,6 +342,19 @@ public partial class BuildMenuUI : CanvasLayer
         if (BuildingManager.Instance != null)
         {
             BuildingManager.Instance.BuildModeChanged += OnBuildModeChanged;
+        }
+        if (ResearchManager.Instance != null)
+        {
+            ResearchManager.Instance.TechnologyUnlocked += OnTechnologyUnlocked;
+        }
+    }
+
+    private void OnTechnologyUnlocked(TechnologyResource tech)
+    {
+        // Refresh display when a technology is unlocked to show newly available buildings
+        if (Visible)
+        {
+            UpdateBuildingsDisplay();
         }
     }
 

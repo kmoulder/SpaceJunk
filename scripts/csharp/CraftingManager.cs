@@ -294,7 +294,8 @@ public partial class CraftingManager : Node
 
         RegisterRecipe(CreateRecipe("steel_smelting", "Steel Plate", Enums.CraftingType.Furnace,
             new[] { "iron_plate" }, new[] { 5 },
-            new[] { "steel_plate" }, new[] { 1 }, 16.0f));
+            new[] { "steel_plate" }, new[] { 1 }, 16.0f,
+            "steel_processing"));
 
         // Player/Assembler recipes
         RegisterRecipe(CreateRecipe("iron_gear", "Iron Gear", Enums.CraftingType.Player,
@@ -324,7 +325,8 @@ public partial class CraftingManager : Node
     /// </summary>
     private static RecipeResource CreateRecipe(string id, string name, Enums.CraftingType type,
         string[] ingredientIds, int[] ingredientCounts,
-        string[] resultIds, int[] resultCounts, float craftingTime)
+        string[] resultIds, int[] resultCounts, float craftingTime,
+        string requiredTechnology = null)
     {
         return new RecipeResource
         {
@@ -335,7 +337,8 @@ public partial class CraftingManager : Node
             IngredientCounts = ingredientCounts,
             ResultIds = resultIds,
             ResultCounts = resultCounts,
-            CraftingTime = craftingTime
+            CraftingTime = craftingTime,
+            RequiredTechnology = requiredTechnology ?? ""
         };
     }
 }
