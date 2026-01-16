@@ -2,21 +2,33 @@
 
 A Factorio-inspired automation game set on a space station drifting through a debris field. Collect floating space junk, process raw materials into refined goods, and build an ever-expanding automated factory in the void of space.
 
-## Current Status: Phase 1 Complete
+## Current Status: Phase 2 Complete
 
 **What's Working:**
 - Debris spawns and drifts across the screen
 - Click debris to collect resources into inventory
 - Press 'I' to open/close 40-slot inventory
+- Press 'B' to open build menu
+- Place buildings on station grid (furnace, chest, belt, inserter)
+- Press 'R' to rotate buildings while placing
+- Right-click to cancel placement or remove buildings
 - Hotbar displays at bottom of screen
 - WASD/arrows to pan camera, scroll to zoom
 - 3x3 station foundation renders at center
-- All core singletons operational (Game, Grid, Inventory, Crafting, Research, Power, Debris)
+- All core singletons operational (Game, Grid, Inventory, Crafting, Research, Power, Debris, Building)
 - Procedural pixel art generation for all sprites
 
-**Remaining Phase 1 Items:**
+**Phase 2 Buildings:**
+- Stone Furnace (2x2) - Smelts ores with coal fuel
+- Small Chest (1x1) - 16-slot storage
+- Transport Belt (1x1) - Moves items, auto-connects to adjacent belts
+- Inserter (1x1) - Transfers items between buildings
+
+**Remaining Items (deferred):**
 - Crafting UI panel (recipes exist but no UI to trigger hand-crafting)
 - Collection visual feedback (particles/sounds)
+- Belt drag-placement (place multiple in a line)
+- Power pole placement and network visualization
 
 **See [ROADMAP.md](ROADMAP.md) for full implementation plan.**
 
@@ -79,14 +91,14 @@ SpaceFactory/
 5. Use number keys 1-0 to select hotbar slots
 6. Build and automate!
 
-**Note:** On first run, you'll receive 20 Iron Ore, 15 Copper Ore, and 10 Coal as starting resources for testing.
+**Note:** On first run, you'll receive starting resources (iron ore, copper ore, coal, stone, iron plates, iron gears, circuits) for testing buildings.
 
 ## Documentation
 
 - [Game Design Document](DESIGN.md) - Detailed game mechanics and systems
 - [Technical Architecture](ARCHITECTURE.md) - Code structure and patterns
 - [Implementation Roadmap](ROADMAP.md) - Phased development plan
-- [Phase 2 Handoff](HANDOFF.md) - Guide for continuing development
+- [Phase 3 Handoff](HANDOFF.md) - Guide for continuing development
 
 ## Controls
 
@@ -95,10 +107,12 @@ SpaceFactory/
 | Left Click | Collect debris / Place building |
 | Right Click | Cancel placement / Remove building |
 | I | Toggle inventory |
+| B | Toggle build menu |
+| R | Rotate building (while placing) |
 | E | Interact with building |
 | WASD / Arrow Keys | Pan camera |
 | Mouse Wheel | Zoom in/out |
-| Escape | Open menu |
+| Escape | Exit build mode / Open menu |
 
 ## License
 

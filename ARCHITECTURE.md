@@ -4,39 +4,68 @@
 
 This document describes the technical architecture for Space Factory, built in Godot 4.5 using GDScript.
 
-## Implementation Status (Phase 1 Complete)
+## Implementation Status (Phase 2 Complete)
 
-### Implemented Files
+### Implemented Files - Core
 | File | Status | Notes |
 |------|--------|-------|
 | `scripts/core/GameManager.gd` | Complete | Game state, ticks, pause |
 | `scripts/core/GridManager.gd` | Complete | Grid coords, foundation tracking |
 | `scripts/core/SpriteGenerator.gd` | Complete | All procedural sprite generation |
+| `scripts/data/Enums.gd` | Complete | All game enumerations |
+| `scripts/data/Constants.gd` | Complete | Game constants and colors |
+| `scripts/data/ItemStack.gd` | Complete | Stack data class |
+
+### Implemented Files - Systems (Autoload Singletons)
+| File | Status | Notes |
+|------|--------|-------|
 | `scripts/systems/InventoryManager.gd` | Complete | Full inventory with item registry |
 | `scripts/systems/DebrisManager.gd` | Complete | Spawning, drifting, collection |
 | `scripts/systems/CraftingManager.gd` | Complete | Recipe registry, hand-craft queue |
 | `scripts/systems/ResearchManager.gd` | Complete | Tech tree, research progress |
-| `scripts/systems/PowerManager.gd` | Complete | Power network (ready for buildings) |
-| `scripts/data/Enums.gd` | Complete | All game enumerations |
-| `scripts/data/Constants.gd` | Complete | Game constants and colors |
-| `scripts/data/ItemStack.gd` | Complete | Stack data class |
+| `scripts/systems/PowerManager.gd` | Complete | Power network simulation |
+| `scripts/systems/BuildingManager.gd` | Complete | Building registry, placement, removal |
+
+### Implemented Files - Entities
+| File | Status | Notes |
+|------|--------|-------|
+| `scripts/entities/BuildingEntity.gd` | Complete | Base class for all buildings |
+| `scripts/entities/DebrisEntity.gd` | Complete | Debris with drift movement |
+| `scripts/entities/StoneFurnace.gd` | Complete | 2x2 furnace with fuel/input/output |
+| `scripts/entities/SmallChest.gd` | Complete | 1x1 storage with 16 slots |
+| `scripts/entities/ConveyorBelt.gd` | Complete | 1x1 belt with item transport |
+| `scripts/entities/Inserter.gd` | Complete | 1x1 item transfer with swing |
+
+### Implemented Files - UI
+| File | Status | Notes |
+|------|--------|-------|
 | `scripts/ui/HUD.gd` | Complete | Hotbar, resource display |
 | `scripts/ui/InventoryUI.gd` | Complete | 40-slot inventory grid |
-| `scripts/game/Main.gd` | Complete | Main scene controller |
+| `scripts/ui/BuildMenuUI.gd` | Complete | Building selection by category |
+
+### Implemented Files - Resources
+| File | Status | Notes |
+|------|--------|-------|
 | `resources/items/ItemResource.gd` | Complete | Item resource class |
 | `resources/recipes/RecipeResource.gd` | Complete | Recipe resource class |
 | `resources/buildings/BuildingResource.gd` | Complete | Building resource class |
 | `resources/research/TechnologyResource.gd` | Complete | Technology resource class |
 
-### Not Yet Implemented (Phase 2+)
+### Implemented Files - Game
+| File | Status | Notes |
+|------|--------|-------|
+| `scripts/game/Main.gd` | Complete | Main scene controller |
+| `scenes/game/Main.tscn` | Complete | Main game scene |
+
+### Not Yet Implemented (Phase 3+)
 | File | Phase | Notes |
 |------|-------|-------|
 | `scripts/core/SaveManager.gd` | Phase 5 | Save/load system |
-| `scripts/entities/BuildingEntity.gd` | Phase 2 | Base building class |
-| `scripts/entities/buildings/*.gd` | Phase 2-4 | Individual buildings |
-| `scripts/ui/CraftingUI.gd` | Phase 1 remaining | Hand-craft UI panel |
-| `scripts/ui/BuildMenuUI.gd` | Phase 2 | Building selection UI |
+| `scripts/ui/CraftingUI.gd` | Deferred | Hand-craft UI panel |
 | `scripts/ui/ResearchUI.gd` | Phase 3 | Tech tree UI |
+| `scripts/entities/Assembler.gd` | Phase 3 | Multi-ingredient crafting |
+| `scripts/entities/Lab.gd` | Phase 3 | Science pack consumer |
+| `scripts/entities/DebrisCollector.gd` | Phase 3 | Auto debris collection |
 
 ---
 
@@ -580,27 +609,25 @@ scripts/
 │   ├── CraftingManager.gd    ✓ Implemented
 │   ├── ResearchManager.gd    ✓ Implemented
 │   ├── DebrisManager.gd      ✓ Implemented
-│   └── PowerManager.gd       ✓ Implemented
-├── entities/                 ✗ Phase 2 (buildings needed)
-│   ├── BuildingEntity.gd
-│   ├── DebrisEntity.gd       (inline in DebrisManager currently)
-│   ├── ItemEntity.gd
-│   └── buildings/
-│       ├── ConveyorBelt.gd
-│       ├── Inserter.gd
-│       ├── Assembler.gd
-│       ├── Furnace.gd
-│       ├── Chest.gd
-│       ├── Lab.gd
-│       ├── SolarPanel.gd
-│       └── DebrisCollector.gd
+│   ├── PowerManager.gd       ✓ Implemented
+│   └── BuildingManager.gd    ✓ Implemented (Phase 2)
+├── entities/
+│   ├── BuildingEntity.gd     ✓ Implemented - Base class
+│   ├── DebrisEntity.gd       ✓ Implemented - Floating debris
+│   ├── StoneFurnace.gd       ✓ Implemented - 2x2 smelter
+│   ├── SmallChest.gd         ✓ Implemented - 1x1 storage
+│   ├── ConveyorBelt.gd       ✓ Implemented - Item transport
+│   ├── Inserter.gd           ✓ Implemented - Item transfer
+│   ├── Assembler.gd          ✗ Phase 3
+│   ├── Lab.gd                ✗ Phase 3
+│   └── DebrisCollector.gd    ✗ Phase 3
 ├── ui/
 │   ├── HUD.gd                ✓ Implemented
 │   ├── InventoryUI.gd        ✓ Implemented
-│   ├── CraftingUI.gd         ✗ Phase 1 remaining
+│   ├── BuildMenuUI.gd        ✓ Implemented (Phase 2)
+│   ├── CraftingUI.gd         ✗ Deferred
 │   ├── ResearchUI.gd         ✗ Phase 3
-│   ├── BuildMenuUI.gd        ✗ Phase 2
-│   └── TooltipUI.gd          ✗ Phase 2
+│   └── TooltipUI.gd          ✗ Phase 3
 ├── game/
 │   └── Main.gd               ✓ Implemented
 └── data/
@@ -617,6 +644,10 @@ resources/
 │   └── BuildingResource.gd   ✓ Implemented
 └── research/
     └── TechnologyResource.gd ✓ Implemented
+
+scenes/
+└── game/
+    └── Main.tscn             ✓ Implemented
 ```
 
 ## Autoload Singletons (project.godot)
@@ -629,3 +660,4 @@ The following singletons are configured and load automatically:
 - `DebrisManager` - Debris spawning/collection
 - `ResearchManager` - Tech tree
 - `PowerManager` - Power network
+- `BuildingManager` - Building placement and registry (Phase 2)

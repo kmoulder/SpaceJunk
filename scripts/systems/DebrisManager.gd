@@ -4,6 +4,8 @@ extends Node
 ##
 ## Spawns debris at screen edges, manages their movement, and handles collection.
 
+const DebrisEntityScript = preload("res://scripts/entities/DebrisEntity.gd")
+
 signal debris_spawned(debris: Node2D)
 signal debris_collected(debris: Node2D, items: Array)
 signal debris_despawned(debris: Node2D)
@@ -32,9 +34,6 @@ var debris_weights: Dictionary = {
 	"scrap_metal": 20,
 	"ice_chunk": 10
 }
-
-## Preload the debris scene
-var DebrisScene: PackedScene = null
 
 
 func _ready() -> void:
@@ -159,54 +158,17 @@ func _choose_debris_type() -> String:
 
 
 func _create_debris_entity(debris_type: String) -> Node2D:
-	# Create debris programmatically for now
-	var debris := Area2D.new()
+	# Create debris using the DebrisEntity class
+	var debris: Area2D = Area2D.new()
+	debris.set_script(DebrisEntityScript)
 	debris.name = "Debris_" + debris_type
 
-	# Add collision shape
-	var collision := CollisionShape2D.new()
-	var shape := CircleShape2D.new()
-	shape.radius = Constants.DEBRIS_CLICK_RADIUS
-	collision.shape = shape
-	debris.add_child(collision)
-
-	# Add sprite
-	var sprite := Sprite2D.new()
-	sprite.texture = SpriteGenerator.generate_debris(debris_type, randi())
-	debris.add_child(sprite)
-
-	# Add script functionality via metadata
-	debris.set_meta("debris_type", debris_type)
-	debris.set_meta("drift_velocity", Vector2.ZERO)
-	debris.set_meta("contents", _generate_contents(debris_type))
-
-	# Set up collision layers
-	debris.collision_layer = 2  # debris layer
-	debris.collision_mask = 0
-	debris.input_pickable = true
+	# Initialize with type and contents
+	var contents := _generate_contents(debris_type)
+	debris.initialize(debris_type, contents, randi())
 
 	# Connect input for clicking
 	debris.input_event.connect(_on_debris_input.bind(debris))
-
-	# Add script for movement
-	var script := GDScript.new()
-	script.source_code = """
-extends Area2D
-
-func update_movement(delta: float) -> void:
-	var vel: Vector2 = get_meta("drift_velocity", Vector2.ZERO)
-	global_position += vel * delta
-
-func set_drift_velocity(vel: Vector2) -> void:
-	set_meta("drift_velocity", vel)
-
-func get_contents() -> Array:
-	return get_meta("contents", [])
-
-func get_debris_type() -> String:
-	return get_meta("debris_type", "unknown")
-"""
-	debris.set_script(script)
 
 	return debris
 
