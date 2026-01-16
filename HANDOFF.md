@@ -1,16 +1,20 @@
-# Space Factory - Phase 2 Handoff Document
+# Space Factory - Phase 3 Handoff Document
 
-This document provides everything needed to continue development from Phase 1 to Phase 2.
+This document provides everything needed to continue development from Phase 2 to Phase 3.
 
 ## Quick Start
 
 1. Open project in Godot 4.5
 2. Run `scenes/game/Main.tscn`
-3. Review `ROADMAP.md` for Phase 2 tasks
+3. Press 'B' to open the build menu
+4. Select a building and click to place
+5. Press 'R' to rotate while placing
+6. Right-click to remove buildings
+7. Review `ROADMAP.md` for Phase 3 tasks
 
 ---
 
-## What's Been Built (Phase 1)
+## What's Been Built (Phase 1 + Phase 2)
 
 ### Core Architecture
 All systems use **autoload singletons** configured in `project.godot`. Access them globally:
@@ -20,83 +24,132 @@ All systems use **autoload singletons** configured in `project.godot`. Access th
 - `CraftingManager` - Recipe registry, hand-crafting queue
 - `DebrisManager` - Debris spawning and collection
 - `ResearchManager` - Tech tree (ready but no UI)
-- `PowerManager` - Power network (ready for buildings)
+- `PowerManager` - Power network simulation
+- `BuildingManager` - Building registry, placement, removal (NEW)
 
-### Key Files to Understand
+### Phase 2 Additions
 
-| File | What It Does |
-|------|--------------|
-| `scripts/data/Constants.gd` | All game constants (tile size, speeds, colors) |
-| `scripts/data/Enums.gd` | All enumerations + helper functions |
-| `scripts/core/SpriteGenerator.gd` | Procedural sprite generation (static methods) |
-| `scripts/game/Main.gd` | Main scene setup, camera, input handling |
+#### Building System
+- **BuildingEntity** (`scripts/entities/BuildingEntity.gd`) - Base class for all buildings
+  - Grid positioning and rotation
+  - Power network integration (auto-registers with PowerManager)
+  - Tick-based processing via `_process_building()`
+  - Internal inventory support for storage buildings
+  - Insert/extract item methods for inserter compatibility
 
-### Pre-Registered Items
-`InventoryManager` auto-registers these items on startup:
-- Raw: `iron_ore`, `copper_ore`, `stone`, `coal`, `scrap_metal`, `ice`
-- Processed: `iron_plate`, `copper_plate`, `stone_brick`, `steel_plate`
-- Components: `iron_gear`, `copper_cable`, `electronic_circuit`
+#### Buildings Implemented
+| Building | Size | Description |
+|----------|------|-------------|
+| Stone Furnace | 2x2 | Smelts ores using coal fuel |
+| Small Chest | 1x1 | 16-slot storage |
+| Transport Belt | 1x1 | Moves items, auto-connects |
+| Inserter | 1x1 | Transfers items between buildings |
+| Long Inserter | 1x1 | Reaches 2 tiles (requires research) |
+| Solar Panel | 2x2 | Power generation (requires research) |
 
-### Pre-Registered Recipes
-`CraftingManager` auto-registers these recipes:
-- Smelting (FURNACE): iron_plate, copper_plate, stone_brick, steel_plate
-- Hand-craft (HAND): iron_gear, copper_cable, electronic_circuit
+#### BuildingManager Singleton
+- Building registry with `get_building(id)` and `get_all_buildings()`
+- Build mode with ghost preview
+- Placement validation (foundation + resource cost)
+- Building removal with full refund
+- Category filtering for build menu
 
-### Pre-Registered Technologies
-`ResearchManager` has a basic tech tree ready (see `_register_default_technologies()`)
+#### Build Menu UI
+- Press 'B' to toggle
+- Categories: Processing, Storage, Transport, Power
+- Shows building cost with color-coded availability
+- Click to enter build mode
+
+#### Controls
+- **B** - Toggle build menu
+- **R** - Rotate building (while placing)
+- **Left-click** - Place building (in build mode) / Interact
+- **Right-click** - Cancel build mode / Remove building
+- **Escape** - Exit build mode
 
 ---
 
-## Phase 2 Tasks (from ROADMAP.md)
+## Key Files to Understand
 
-### 2.1 Building System
-Create `scripts/entities/BuildingEntity.gd` as base class:
+| File | What It Does |
+|------|--------------|
+| `scripts/entities/BuildingEntity.gd` | Base class for all buildings |
+| `scripts/entities/StoneFurnace.gd` | Furnace with fuel/input/output slots |
+| `scripts/entities/SmallChest.gd` | Storage with 16 inventory slots |
+| `scripts/entities/ConveyorBelt.gd` | Item transport with auto-connection |
+| `scripts/entities/Inserter.gd` | Item transfer with swing animation |
+| `scripts/systems/BuildingManager.gd` | Building placement and registry |
+| `scripts/ui/BuildMenuUI.gd` | Build menu interface |
+
+---
+
+## How Buildings Work
+
+### Furnace Processing
 ```gdscript
-class_name BuildingEntity
-extends Node2D
+# StoneFurnace has three special slots:
+var fuel_slot: ItemStack      # Coal goes here
+var input_slot: ItemStack     # Ore goes here
+var output_slot: ItemStack    # Plates come out here
 
-var definition: BuildingResource
-var grid_position: Vector2i
-var rotation_index: int = 0  # 0-3 for N/E/S/W
-
-func get_definition() -> BuildingResource:
-    return definition
+# Furnace automatically:
+# 1. Finds matching recipe for input ore
+# 2. Consumes fuel to maintain burn time
+# 3. Progresses crafting each tick
+# 4. Outputs result when complete
 ```
 
-Key integration points:
-- `GridManager.place_building(pos, node, def)` - Already implemented
-- `GridManager.remove_building(pos)` - Already implemented
-- `GridManager.can_place_building(pos, def)` - Already implemented
+### Belt Item Movement
+```gdscript
+# ConveyorBelt moves items at Constants.BELT_SPEED_TIER_1 (1 tile/sec)
+# Items have progress 0.0 -> 1.0 along belt
+# Belts auto-connect to adjacent belts facing the same way
+# Items transfer when progress >= 1.0 and next belt is empty
+```
 
-### 2.2 First Buildings to Implement
+### Inserter Logic
+```gdscript
+# Inserter picks from BEHIND (opposite of facing direction)
+# and drops IN FRONT (facing direction)
+# Swing takes Constants.INSERTER_SWING_TIME seconds
+# Will only pick up if destination can accept item
+```
 
-**Stone Furnace** (2x2, coal-powered):
-- Input: 1 ore + fuel (coal)
-- Output: 1 plate
-- Use `CraftingManager.get_recipes_for_building(Enums.CraftingType.FURNACE)`
+---
 
-**Small Chest** (1x1):
-- 16 inventory slots
-- Inserters can put/take items
+## Phase 3 Tasks (from ROADMAP.md)
 
-### 2.3 Conveyor Belts
-- 1x1 tile, directional
-- Items move along belt at `Constants.BELT_SPEED_TIER_1` (1 tile/sec)
-- Use `SpriteGenerator.generate_belt(direction)` for sprites
-- Connect to adjacent belts automatically
+### 3.1 Research System UI
+- Create research/tech tree panel (toggle with T)
+- Show available and locked technologies
+- Research progress display
+- Lab building to consume science packs
 
-### 2.4 Inserters
-- Pickup from one side, drop to other side
-- Swing time in `Constants.INSERTER_SWING_TIME`
-- Use `SpriteGenerator.generate_inserter(is_long)` for sprites
-- Check `GridManager.get_adjacent_building()` for targets
+### 3.2 Science Packs
+- Create Automation Science Pack item
+- Recipe for science pack crafting
+- Lab consumes packs for research progress
 
-### 2.5 Build Menu UI
-Create `scripts/ui/BuildMenuUI.gd`:
-- Show available buildings (check `ResearchManager.is_technology_unlocked()`)
-- Ghost preview during placement
-- R key to rotate (`Enums.rotate_direction_cw()`)
-- Left-click to place, right-click to cancel
+### 3.3 Station Expansion
+- Foundation item + recipe
+- Allow placing foundation adjacent to existing
+- Expand buildable area
+
+### 3.4 Assembler Building
+- Multi-ingredient crafting machine
+- Recipe selection UI
+- Faster than hand-crafting
+
+### 3.5 More Buildings
+- Fast Inserter (research unlock)
+- Underground Belt
+- Splitter
+- Medium Chest
+
+### 3.6 Debris Collector Building
+- Automatic debris collection
+- Range visualization
+- Output to belts/chests
 
 ---
 
@@ -104,94 +157,114 @@ Create `scripts/ui/BuildMenuUI.gd`:
 
 ### Signal-Based Architecture
 ```
-DebrisManager.debris_collected → updates InventoryManager
-InventoryManager.inventory_changed → updates HUD
-CraftingManager.craft_completed → updates InventoryManager
-GridManager.building_placed → (connect your building logic)
-PowerManager.brownout_started → (buildings should slow down)
+BuildingManager.building_placed → GridManager stores reference
+BuildingManager.building_removed → GridManager removes reference
+BuildingEntity._ready() → registers with PowerManager
+BuildingEntity.on_removed() → unregisters from PowerManager
+GameManager.game_tick → all buildings process via _on_game_tick()
 ```
 
-### Game Tick System
-Buildings should hook into `GameManager.game_tick`:
+### Building Tick Processing
 ```gdscript
-func _ready():
-    GameManager.game_tick.connect(_on_tick)
+# Buildings hook into game tick automatically:
+func _ready() -> void:
+    GameManager.game_tick.connect(_on_game_tick)
 
-func _on_tick(tick: int):
-    # Process one tick of building logic
-    # Use GameManager.game_speed for time scaling
+func _on_game_tick(tick: int) -> void:
+    if not is_powered:
+        return
+    _process_building()  # Override this
+
+func _process_building() -> void:
+    # Furnace: check recipe, consume fuel, progress crafting
+    # Belt: move items, transfer to next belt
+    # Inserter: swing arm, pick up, drop items
+    pass
 ```
 
 ---
 
 ## Sprite Generation Reference
 
-All sprites are 32x32 pixels. Use these static methods:
-
+New building sprites in SpriteGenerator:
 ```gdscript
-# Items
-SpriteGenerator.generate_ore(color, variation_seed)
-SpriteGenerator.generate_plate(color)
-SpriteGenerator.generate_gear(color)
-SpriteGenerator.generate_cable(color)
-SpriteGenerator.generate_circuit(color, complexity)
-
-# Buildings
-SpriteGenerator.generate_building(color, size_vector2i)
-SpriteGenerator.generate_furnace(is_electric)
-SpriteGenerator.generate_chest(color)
-SpriteGenerator.generate_belt(direction_enum)
-SpriteGenerator.generate_inserter(is_long)
-SpriteGenerator.generate_solar_panel()
-SpriteGenerator.generate_foundation()
-
-# Debris
-SpriteGenerator.generate_debris(type_string, variation)
+SpriteGenerator.generate_furnace(is_electric: bool) -> ImageTexture  # 64x64 (2x2)
+SpriteGenerator.generate_chest(color: Color) -> ImageTexture          # 32x32 (1x1)
+SpriteGenerator.generate_belt(direction: Enums.Direction) -> ImageTexture  # 32x32
+SpriteGenerator.generate_inserter(is_long: bool) -> ImageTexture      # 32x32
+SpriteGenerator.generate_solar_panel() -> ImageTexture                # 64x64 (2x2)
 ```
-
-Colors are defined in `Constants.gd` (COLOR_IRON_PLATE, COLOR_COPPER_ORE, etc.)
 
 ---
 
 ## Known Issues / Technical Debt
 
-1. **Debris entities are created inline** in `DebrisManager._create_debris_entity()` rather than as a separate scene/class. Consider extracting to `scripts/entities/DebrisEntity.gd`.
+1. **Inserter arm visual** - The arm rotation visual isn't perfectly implemented; may need refinement for smooth animation.
 
-2. **No crafting UI** - `CraftingManager` has queue system ready, but no UI to trigger hand-crafting. This is a remaining Phase 1 item.
+2. **Belt corners** - Belts only go straight; corner/turn pieces not yet implemented.
 
-3. **Hotbar not fully connected** - Hotbar displays but doesn't sync with inventory for quick-select building placement.
+3. **No crafting UI** - Hand-crafting queue exists but no UI to trigger it (Phase 1 leftover).
 
-4. **No collection feedback** - Debris disappears instantly when clicked. Should add particles or animation.
+4. **Collection feedback** - Debris still lacks particle effects on collection.
+
+5. **Building UI** - No UI for interacting with placed buildings (e.g., seeing furnace contents).
+
+6. **Research gating** - Technology requirements checked but most buildings are available by default for testing.
 
 ---
 
 ## Testing Checklist
 
-Before starting Phase 2 work, verify:
-- [ ] Game runs without errors in Godot 4.5
-- [ ] Debris spawns and drifts across screen
-- [ ] Clicking debris adds items to inventory
-- [ ] 'I' key opens/closes inventory
-- [ ] WASD pans camera
-- [ ] Scroll wheel zooms
-- [ ] Station foundation (3x3 gray grid) visible at center
+Before starting Phase 3 work, verify:
+- [ ] Game runs without errors
+- [ ] Press B opens build menu
+- [ ] Can place Stone Furnace (costs 5 stone)
+- [ ] Can place Small Chest (costs 2 iron plates)
+- [ ] Can place Transport Belt (costs 1 gear + 1 iron plate)
+- [ ] Can place Inserter (costs 1 gear + 1 plate + 1 circuit)
+- [ ] R rotates building preview
+- [ ] Right-click removes buildings (refunds materials)
+- [ ] Buildings appear on station grid
+- [ ] Furnace smelts ore when given fuel and input
 
 ---
 
 ## File Quick Reference
 
 ```
-scenes/game/Main.tscn          - Main game scene
-scripts/game/Main.gd           - Main scene logic
-scripts/core/GameManager.gd    - Game state singleton
-scripts/core/GridManager.gd    - Grid/building singleton
-scripts/core/SpriteGenerator.gd - Procedural sprites
-scripts/systems/*.gd           - All manager singletons
-scripts/data/*.gd              - Enums, Constants, ItemStack
-scripts/ui/HUD.gd              - Hotbar and resource display
-scripts/ui/InventoryUI.gd      - Inventory panel
-resources/*/*.gd               - Resource class definitions
+scenes/game/Main.tscn              - Main game scene
+scripts/game/Main.gd               - Main scene logic + building integration
+scripts/core/GameManager.gd        - Game state singleton
+scripts/core/GridManager.gd        - Grid/building singleton
+scripts/core/SpriteGenerator.gd    - Procedural sprites
+scripts/systems/BuildingManager.gd - Building placement (NEW)
+scripts/systems/*.gd               - All manager singletons
+scripts/entities/BuildingEntity.gd - Building base class (NEW)
+scripts/entities/StoneFurnace.gd   - Furnace building (NEW)
+scripts/entities/SmallChest.gd     - Chest building (NEW)
+scripts/entities/ConveyorBelt.gd   - Belt building (NEW)
+scripts/entities/Inserter.gd       - Inserter building (NEW)
+scripts/ui/BuildMenuUI.gd          - Build menu (NEW)
+scripts/ui/HUD.gd                  - Hotbar and resource display
+scripts/ui/InventoryUI.gd          - Inventory panel
+scripts/data/*.gd                  - Enums, Constants, ItemStack
+resources/*/*.gd                   - Resource class definitions
 ```
+
+---
+
+## Starter Items for Testing
+
+The game now gives more starting items for testing Phase 2:
+- 50 Iron Ore
+- 30 Copper Ore
+- 20 Coal
+- 30 Stone
+- 20 Iron Plates
+- 10 Iron Gears
+- 10 Electronic Circuits
+
+This allows testing all basic buildings without manual crafting.
 
 ---
 

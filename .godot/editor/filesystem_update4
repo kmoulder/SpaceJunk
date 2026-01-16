@@ -1,0 +1,6 @@
+res://scripts/core/SpriteGenerator.gd
+res://scripts/ui/HUD.gd
+res://scripts/game/Main.gd
+res://scripts/systems/BuildingManager.gd
+res://scripts/entities/Inserter.gd
+res://scripts/ui/BuildMenuUI.gd

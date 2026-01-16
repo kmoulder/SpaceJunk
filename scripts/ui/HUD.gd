@@ -192,8 +192,9 @@ func hide_tooltip() -> void:
 func _input(event: InputEvent) -> void:
 	# Number keys for hotbar selection
 	if event is InputEventKey and event.pressed:
-		var key := event.keycode
-		if key >= KEY_1 and key <= KEY_9:
-			InventoryManager.select_hotbar(key - KEY_1)
-		elif key == KEY_0:
+		var key_event := event as InputEventKey
+		var keycode: int = key_event.keycode
+		if keycode >= KEY_1 and keycode <= KEY_9:
+			InventoryManager.select_hotbar(keycode - KEY_1)
+		elif keycode == KEY_0:
 			InventoryManager.select_hotbar(9)

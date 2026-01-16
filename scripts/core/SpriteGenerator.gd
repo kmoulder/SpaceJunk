@@ -6,7 +6,7 @@ extends RefCounted
 ## Creates textures at runtime for items, buildings, and debris
 ## using a chunky 32x32 pixel art style.
 
-const SPRITE_SIZE := 32
+const SPRITE_SIZE: int = 32
 
 
 ## Generate an ore/raw material sprite
@@ -34,7 +34,7 @@ static func generate_ore(base_color: Color, variation_seed: int = 0) -> ImageTex
 
 			if dist < base_radius + noise_offset:
 				# Determine shade based on position
-				var shade := 1.0 - (dist / (base_radius + 5)) * 0.3
+				var shade: float = 1.0 - (dist / (base_radius + 5)) * 0.3
 				shade += rng.randf_range(-0.1, 0.1)
 
 				# Add highlights and shadows
@@ -72,7 +72,7 @@ static func generate_plate(base_color: Color) -> ImageTexture:
 		for y in range(plate_rect.position.y, plate_rect.end.y):
 			var color := base_color
 			# Add subtle gradient
-			var shade := 1.0 - (y - margin) / float(plate_rect.size.y) * 0.2
+			var shade: float = 1.0 - float(y - margin) / float(plate_rect.size.y) * 0.2
 			color = color * shade
 			color.a = 1.0
 			img.set_pixel(x, y, color)
@@ -129,7 +129,7 @@ static func generate_gear(base_color: Color) -> ImageTexture:
 				effective_radius += tooth_height
 
 			if dist < effective_radius and dist > inner_radius:
-				var shade := 0.9 + (center.y - y) / SPRITE_SIZE * 0.3
+				var shade: float = 0.9 + (center.y - y) / float(SPRITE_SIZE) * 0.3
 				var color := base_color * shade
 				color.a = 1.0
 				img.set_pixel(x, y, color)
@@ -152,7 +152,7 @@ static func generate_cable(base_color: Color) -> ImageTexture:
 		for dx in range(cable_width):
 			var x := x_start + dx
 			if x >= 0 and x < SPRITE_SIZE:
-				var shade := 1.0 - abs(dx - cable_width / 2) / float(cable_width) * 0.3
+				var shade: float = 1.0 - float(abs(dx - cable_width / 2)) / float(cable_width) * 0.3
 				var color := base_color * shade
 				color.a = 1.0
 				img.set_pixel(x, y, color)
@@ -221,7 +221,7 @@ static func generate_building(base_color: Color, size: Vector2i) -> ImageTexture
 	# Main body
 	for x in range(margin, pixel_size.x - margin):
 		for y in range(margin, pixel_size.y - margin):
-			var shade := 1.0 - float(y) / pixel_size.y * 0.2
+			var shade: float = 1.0 - float(y) / pixel_size.y * 0.2
 			var color := base_color * shade
 			color.a = 1.0
 			img.set_pixel(x, y, color)
@@ -289,7 +289,7 @@ static func generate_chest(base_color: Color) -> ImageTexture:
 	# Draw box body
 	for x in range(margin, SPRITE_SIZE - margin):
 		for y in range(lid_height + margin, SPRITE_SIZE - margin):
-			var shade := 0.9
+			var shade: float = 0.9
 			if x == margin or x == SPRITE_SIZE - margin - 1:
 				shade = 0.7
 			if y == SPRITE_SIZE - margin - 1:
@@ -301,7 +301,7 @@ static func generate_chest(base_color: Color) -> ImageTexture:
 	# Draw lid
 	for x in range(margin - 1, SPRITE_SIZE - margin + 1):
 		for y in range(margin, margin + lid_height):
-			var shade := 1.1 - float(y - margin) / lid_height * 0.2
+			var shade: float = 1.1 - float(y - margin) / float(lid_height) * 0.2
 			var color := base_color * shade
 			color.a = 1.0
 			img.set_pixel(x, y, color)
@@ -327,7 +327,7 @@ static func generate_furnace(is_electric: bool = false) -> ImageTexture:
 	# Main body
 	for x in range(margin, size - margin):
 		for y in range(margin, size - margin):
-			var shade := 1.0 - float(y) / size * 0.2
+			var shade: float = 1.0 - float(y) / float(size) * 0.2
 			var color := base * shade
 			color.a = 1.0
 			img.set_pixel(x, y, color)
@@ -337,7 +337,7 @@ static func generate_furnace(is_electric: bool = false) -> ImageTexture:
 	var opening_margin := 12
 	for x in range(opening_margin, size - opening_margin):
 		for y in range(size / 2, size - opening_margin):
-			var intensity := 1.0 - float(y - size / 2) / (size / 2 - opening_margin) * 0.5
+			var intensity := 1.0 - float(y - size / 2) / float(size / 2 - opening_margin) * 0.5
 			var color := fire_color * intensity
 			color.a = 1.0
 			img.set_pixel(x, y, color)

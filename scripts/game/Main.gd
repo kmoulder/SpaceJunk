@@ -13,6 +13,7 @@ extends Node2D
 @onready var camera: Camera2D = $Camera2D
 @onready var hud: CanvasLayer = $HUD
 @onready var inventory_ui: CanvasLayer = $InventoryUI
+@onready var build_menu_ui: CanvasLayer = $BuildMenuUI
 
 ## Camera movement
 var camera_target_position: Vector2 = Vector2.ZERO
@@ -21,12 +22,16 @@ var camera_zoom_target: float = 1.0
 ## Foundation tile sprites cache
 var foundation_sprites: Dictionary = {}
 
+## Last known mouse grid position (for ghost updates)
+var last_mouse_grid_pos: Vector2i = Vector2i.ZERO
+
 
 func _ready() -> void:
 	_setup_camera()
 	_setup_background()
 	_setup_debris_system()
 	_setup_station()
+	_setup_building_system()
 	_start_game()
 
 
@@ -104,6 +109,11 @@ func _setup_station() -> void:
 	GridManager.foundation_removed.connect(_on_foundation_removed)
 
 
+func _setup_building_system() -> void:
+	# Give BuildingManager reference to buildings layer
+	BuildingManager.buildings_layer = buildings_layer
+
+
 func _update_foundation_visuals() -> void:
 	# Generate foundation texture
 	var foundation_texture := SpriteGenerator.generate_foundation()
@@ -153,22 +163,35 @@ func _start_game() -> void:
 
 
 func _give_starting_items() -> void:
-	# Debug: Give some starting resources
+	# Give starter resources for testing Phase 2 buildings
 	var iron := InventoryManager.get_item("iron_ore")
 	var copper := InventoryManager.get_item("copper_ore")
 	var coal := InventoryManager.get_item("coal")
+	var stone := InventoryManager.get_item("stone")
+	var iron_plate := InventoryManager.get_item("iron_plate")
+	var iron_gear := InventoryManager.get_item("iron_gear")
+	var circuit := InventoryManager.get_item("electronic_circuit")
 
 	if iron:
-		InventoryManager.add_item(iron, 20)
+		InventoryManager.add_item(iron, 50)
 	if copper:
-		InventoryManager.add_item(copper, 15)
+		InventoryManager.add_item(copper, 30)
 	if coal:
-		InventoryManager.add_item(coal, 10)
+		InventoryManager.add_item(coal, 20)
+	if stone:
+		InventoryManager.add_item(stone, 30)
+	if iron_plate:
+		InventoryManager.add_item(iron_plate, 20)
+	if iron_gear:
+		InventoryManager.add_item(iron_gear, 10)
+	if circuit:
+		InventoryManager.add_item(circuit, 10)
 
 
 func _process(delta: float) -> void:
 	_handle_camera_input(delta)
 	_update_camera(delta)
+	_update_build_ghost()
 
 
 func _handle_camera_input(delta: float) -> void:
@@ -189,6 +212,15 @@ func _handle_camera_input(delta: float) -> void:
 		camera_target_position += pan_direction * Constants.CAMERA_PAN_SPEED * delta / camera.zoom.x
 
 
+func _update_build_ghost() -> void:
+	# Update ghost preview position when in build mode
+	if BuildingManager.is_in_build_mode():
+		var grid_pos := get_mouse_grid_position()
+		if grid_pos != last_mouse_grid_pos:
+			last_mouse_grid_pos = grid_pos
+			BuildingManager.update_ghost_position(grid_pos)
+
+
 func _input(event: InputEvent) -> void:
 	# Zoom with mouse wheel
 	if event.is_action_pressed("zoom_in"):
@@ -196,10 +228,30 @@ func _input(event: InputEvent) -> void:
 	elif event.is_action_pressed("zoom_out"):
 		camera_zoom_target = maxf(camera_zoom_target - Constants.CAMERA_ZOOM_STEP, Constants.CAMERA_ZOOM_MIN)
 
+	# Rotation for building placement
+	if event.is_action_pressed("rotate"):
+		if BuildingManager.is_in_build_mode():
+			BuildingManager.rotate_placement_cw()
+			get_viewport().set_input_as_handled()
+
+	# Cancel build mode or close menus
+	if event.is_action_pressed("cancel"):
+		if BuildingManager.is_in_build_mode():
+			BuildingManager.exit_build_mode()
+			get_viewport().set_input_as_handled()
+
 	# Handle clicking on game world
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-			_handle_world_click(event.position)
+			_handle_left_click()
+		elif event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
+			_handle_right_click()
+
+	# Handle mouse motion for ghost preview
+	if event is InputEventMouseMotion:
+		if BuildingManager.is_in_build_mode():
+			var grid_pos := get_mouse_grid_position()
+			BuildingManager.update_ghost_position(grid_pos)
 
 
 func _update_camera(delta: float) -> void:
@@ -212,17 +264,48 @@ func _update_camera(delta: float) -> void:
 	camera.zoom = Vector2(new_zoom, new_zoom)
 
 
-func _handle_world_click(screen_pos: Vector2) -> void:
-	# Convert screen position to world position
-	var world_pos := camera.get_global_mouse_position()
+func _handle_left_click() -> void:
+	var grid_pos := get_mouse_grid_position()
 
-	# Check if clicking on grid for building placement
-	var grid_pos := GridManager.world_to_grid(world_pos)
+	# If in build mode, try to place building
+	if BuildingManager.is_in_build_mode():
+		if BuildingManager.try_place_building(grid_pos):
+			# Keep build mode active for placing multiple buildings
+			pass
+		return
 
-	# For now, just check if clicking on station area
-	if GridManager.has_foundation(grid_pos):
-		print("Clicked on station tile: ", grid_pos)
-		# TODO: Handle building placement
+	# Otherwise, check for interactions
+	if GridManager.has_building(grid_pos):
+		_handle_building_click(grid_pos)
+	elif GridManager.has_foundation(grid_pos):
+		# Click on empty foundation - could open build menu
+		pass
+
+
+func _handle_right_click() -> void:
+	var grid_pos := get_mouse_grid_position()
+
+	# If in build mode, exit it
+	if BuildingManager.is_in_build_mode():
+		BuildingManager.exit_build_mode()
+		return
+
+	# Otherwise, try to remove building
+	if GridManager.has_building(grid_pos):
+		BuildingManager.remove_building(grid_pos)
+
+
+func _handle_building_click(grid_pos: Vector2i) -> void:
+	var building := GridManager.get_building(grid_pos)
+	if building == null:
+		return
+
+	# For now, just print info about the building
+	if building is BuildingEntity:
+		var entity := building as BuildingEntity
+		var def := entity.get_definition()
+		if def:
+			print("Clicked on building: ", def.name)
 
 
 func get_mouse_world_position() -> Vector2:

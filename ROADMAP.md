@@ -63,49 +63,49 @@ This document outlines the phased implementation plan for Space Factory. Each ph
 
 ---
 
-## Phase 2: Basic Automation
+## Phase 2: Basic Automation *(Complete)*
 
 **Goal**: First automated production with buildings and conveyors
 
 ### 2.1 Building System
-- [ ] BuildingResource definition
-- [ ] BuildingEntity base class
-- [ ] Building placement mode
-- [ ] Building ghost preview
-- [ ] Rotation support (R key)
-- [ ] Building removal (right-click)
-- [ ] Building inventory component
+- [x] BuildingResource definition
+- [x] BuildingEntity base class
+- [x] Building placement mode
+- [x] Building ghost preview
+- [x] Rotation support (R key)
+- [x] Building removal (right-click)
+- [x] Building inventory component
 
 ### 2.2 First Buildings
-- [ ] Stone Furnace (smelts ore → plates)
-- [ ] Small Chest (basic storage)
-- [ ] Build menu UI
+- [x] Stone Furnace (smelts ore → plates)
+- [x] Small Chest (basic storage)
+- [x] Build menu UI
 
 ### 2.3 Transport: Conveyors
-- [ ] ConveyorBelt entity
-- [ ] Belt item movement
-- [ ] Belt connection logic
-- [ ] Belt sprite generation (animated)
-- [ ] Belt placement in lines
+- [x] ConveyorBelt entity
+- [x] Belt item movement
+- [x] Belt connection logic
+- [x] Belt sprite generation (animated)
+- [ ] Belt placement in lines (drag to place multiple)
 
 ### 2.4 Transport: Inserters
-- [ ] Inserter entity
-- [ ] Pickup/drop mechanics
-- [ ] Swing animation
+- [x] Inserter entity
+- [x] Pickup/drop mechanics
+- [x] Swing animation
 - [ ] Filter inserter variant
 
 ### 2.5 Crafting Expansion
-- [ ] Iron Gear Wheel recipe
-- [ ] Copper Cable recipe
-- [ ] Electronic Circuit recipe
-- [ ] Stone Brick recipe
+- [x] Iron Gear Wheel recipe
+- [x] Copper Cable recipe
+- [x] Electronic Circuit recipe
+- [x] Stone Brick recipe
 
 ### 2.6 Power System (Basic)
-- [ ] PowerManager singleton
+- [x] PowerManager singleton
 - [ ] Power pole placement
-- [ ] Solar Panel building
+- [x] Solar Panel building (defined, requires research)
 - [ ] Power network visualization
-- [ ] Building power requirements
+- [x] Building power requirements
 
 **Phase 2 Deliverable**: Player can build furnaces, chests, belts, and inserters to automate ore processing.
 
@@ -289,16 +289,21 @@ This document outlines the phased implementation plan for Space Factory. Each ph
 
 ## Current Focus
 
-**Active Phase**: Phase 1 - Core Foundation (Nearly Complete)
+**Active Phase**: Phase 3 - Research & Expansion
 
-**Remaining Phase 1 Tasks**:
+**Remaining from Phase 1/2**:
 1. Collection feedback (particles/sounds when clicking debris)
 2. Crafting UI panel for hand-crafting
+3. Belt drag-placement (place multiple in a line)
+4. Filter inserter variant
+5. Power pole placement and network visualization
 
-**Next Phase Preview** (Phase 2):
-1. Building placement system
-2. Stone Furnace implementation
-3. Conveyor belts and inserters
+**Next Phase Preview** (Phase 3):
+1. Research UI (tech tree panel)
+2. Lab building for science pack consumption
+3. Assembler building for automated crafting
+4. Station expansion with foundation placement
+5. Debris collector building
 
 ---
 
