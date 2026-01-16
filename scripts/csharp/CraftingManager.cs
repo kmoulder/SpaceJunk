@@ -308,6 +308,15 @@ public partial class CraftingManager : Node
         RegisterRecipe(CreateRecipe("electronic_circuit", "Electronic Circuit", Enums.CraftingType.Player,
             new[] { "iron_plate", "copper_cable" }, new[] { 1, 3 },
             new[] { "electronic_circuit" }, new[] { 1 }, 0.5f));
+
+        // Science pack recipes
+        RegisterRecipe(CreateRecipe("automation_science_pack", "Automation Science Pack", Enums.CraftingType.Player,
+            new[] { "copper_plate", "iron_gear" }, new[] { 1, 1 },
+            new[] { "automation_science" }, new[] { 1 }, 5.0f));
+
+        RegisterRecipe(CreateRecipe("logistic_science_pack", "Logistic Science Pack", Enums.CraftingType.Player,
+            new[] { "iron_gear", "electronic_circuit" }, new[] { 1, 1 },
+            new[] { "logistic_science" }, new[] { 1 }, 6.0f));
     }
 
     /// <summary>

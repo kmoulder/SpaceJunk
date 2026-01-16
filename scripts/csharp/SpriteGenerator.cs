@@ -544,6 +544,102 @@ public partial class SpriteGenerator : Node
     }
 
     /// <summary>
+    /// Generate lab sprite
+    /// </summary>
+    public Texture2D GenerateLab()
+    {
+        string cacheKey = "lab";
+        if (_textureCache.TryGetValue(cacheKey, out var cached))
+            return cached;
+
+        int size = Constants.TileSize * 2;
+        var img = Image.CreateEmpty(size, size, false, Image.Format.Rgba8);
+        img.Fill(Colors.Transparent);
+
+        Color bodyColor = new(0.3f, 0.35f, 0.4f);
+        Color darkColor = bodyColor.Darkened(0.2f);
+        Color glassColor = new(0.4f, 0.6f, 0.7f);
+        Color flaskColor = new(0.8f, 0.2f, 0.2f);
+        Color liquidColor = new(0.2f, 0.8f, 0.3f);
+
+        // Main body
+        for (int x = 4; x < size - 4; x++)
+        {
+            for (int y = 8; y < size - 4; y++)
+            {
+                img.SetPixel(x, y, bodyColor);
+            }
+        }
+
+        // Border
+        for (int x = 4; x < size - 4; x++)
+        {
+            img.SetPixel(x, 8, darkColor);
+            img.SetPixel(x, size - 5, darkColor);
+        }
+        for (int y = 8; y < size - 4; y++)
+        {
+            img.SetPixel(4, y, darkColor);
+            img.SetPixel(size - 5, y, darkColor);
+        }
+
+        // Glass dome/window on top
+        for (int x = 16; x < size - 16; x++)
+        {
+            for (int y = 4; y < 16; y++)
+            {
+                img.SetPixel(x, y, glassColor);
+            }
+        }
+
+        // Flask/beaker on left side
+        for (int x = 10; x < 22; x++)
+        {
+            for (int y = 24; y < 44; y++)
+            {
+                img.SetPixel(x, y, flaskColor);
+            }
+        }
+        // Flask liquid
+        for (int x = 12; x < 20; x++)
+        {
+            for (int y = 32; y < 42; y++)
+            {
+                img.SetPixel(x, y, liquidColor);
+            }
+        }
+
+        // Flask/beaker on right side (different color)
+        Color flask2Color = new(0.2f, 0.4f, 0.8f);
+        Color liquid2Color = new(0.8f, 0.6f, 0.2f);
+        for (int x = size - 22; x < size - 10; x++)
+        {
+            for (int y = 24; y < 44; y++)
+            {
+                img.SetPixel(x, y, flask2Color);
+            }
+        }
+        // Flask liquid
+        for (int x = size - 20; x < size - 12; x++)
+        {
+            for (int y = 34; y < 42; y++)
+            {
+                img.SetPixel(x, y, liquid2Color);
+            }
+        }
+
+        // Science symbol in center (stylized atom)
+        Color atomColor = new(0.9f, 0.9f, 0.2f);
+        int cx = size / 2;
+        int cy = 36;
+        DrawFilledCircle(img, cx, cy, 4, atomColor);
+
+        var labTexture = ImageTexture.CreateFromImage(img);
+        _textureCache[cacheKey] = labTexture;
+        return labTexture;
+    }
+
+    /// <summary>
     /// Generate foundation tile sprite
     /// </summary>
     public Texture2D GenerateFoundation()

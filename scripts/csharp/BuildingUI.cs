@@ -395,6 +395,11 @@ public partial class BuildingUI : CanvasLayer
             SetupFurnaceUI();
             _progressContainer.Visible = true;
         }
+        else if (_currentBuilding is Lab)
+        {
+            SetupLabUI();
+            _progressContainer.Visible = false;
+        }
         else
         {
             SetupGenericUI();
@@ -492,6 +497,53 @@ public partial class BuildingUI : CanvasLayer
         _buildingSlots.Add(outputSlot);
     }
 
+    private void SetupLabUI()
+    {
+        var label = new Label { Text = "Science Packs" };
+        label.AddThemeColorOverride("font_color", Constants.UiTextDim);
+        _buildingSlotsContainer.AddChild(label);
+
+        var hbox = new HBoxContainer();
+        hbox.AddThemeConstantOverride("separation", 12);
+        _buildingSlotsContainer.AddChild(hbox);
+
+        // Create a slot for each science pack type
+        var packTypes = new[] { ("automation_science", "Red"), ("logistic_science", "Green") };
+        for (int i = 0; i < packTypes.Length; i++)
+        {
+            var (packId, packName) = packTypes[i];
+
+            var packVbox = new VBoxContainer();
+            packVbox.AddThemeConstantOverride("separation", 4);
+            hbox.AddChild(packVbox);
+
+            var packLabel = new Label
+            {
+                Text = packName,
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+            packLabel.AddThemeColorOverride("font_color", Constants.UiTextDim);
+            packVbox.AddChild(packLabel);
+
+            var slot = CreateSlot(i, false);
+            slot.CustomMinimumSize = new Vector2(48, 48);
+            slot.SetMeta("pack_id", packId);
+            packVbox.AddChild(slot);
+            _buildingSlots.Add(slot);
+        }
+
+        // Add info about current research
+        var infoLabel = new Label
+        {
+            Name = "ResearchInfo",
+            Text = "Press T to open Research menu",
+            HorizontalAlignment = HorizontalAlignment.Center
+        };
+        infoLabel.AddThemeColorOverride("font_color", Constants.UiTextDim);
+        infoLabel.AddThemeFontSizeOverride("font_size", 11);
+        _buildingSlotsContainer.AddChild(infoLabel);
+    }
+
     private void SetupGenericUI()
     {
         if (_currentBuilding is not BuildingEntity entity)
@@ -526,6 +578,8 @@ public partial class BuildingUI : CanvasLayer
             UpdateChestDisplay(chest);
         else if (_currentBuilding is StoneFurnace furnace)
             UpdateFurnaceDisplay(furnace);
+        else if (_currentBuilding is Lab lab)
+            UpdateLabDisplay(lab);
         else if (_currentBuilding is BuildingEntity entity)
             UpdateGenericDisplay(entity);
     }
@@ -556,6 +610,41 @@ public partial class BuildingUI : CanvasLayer
 
         // Update progress bar
         _progressBar.Value = furnace.GetSmeltingProgress();
+    }
+
+    private void UpdateLabDisplay(Lab lab)
+    {
+        var packTypes = new[] { "automation_science", "logistic_science" };
+        for (int i = 0; i < _buildingSlots.Count && i < packTypes.Length; i++)
+        {
+            var slot = _buildingSlots[i];
+            var packId = packTypes[i];
+
+            if (lab.ScienceSlots.TryGetValue(packId, out var stack))
+            {
+                UpdateSlotDisplay(slot, stack);
+            }
+            else
+            {
+                UpdateSlotDisplay(slot, null);
+            }
+        }
+
+        // Update research info label
+        var infoLabel = _buildingSlotsContainer.GetNodeOrNull<Label>("ResearchInfo");
+        if (infoLabel != null)
+        {
+            var currentResearch = ResearchManager.Instance?.CurrentResearch;
+            if (currentResearch != null)
+            {
+                float progress = ResearchManager.Instance?.GetResearchProgress() ?? 0;
+                infoLabel.Text = $"Researching: {currentResearch.Name} ({progress * 100:F0}%)";
+            }
+            else
+            {
+                infoLabel.Text = "No research active. Press T to start.";
+            }
+        }
     }
 
     private void UpdateGenericDisplay(BuildingEntity entity)
@@ -606,6 +695,7 @@ public partial class BuildingUI : CanvasLayer
             Enums.ItemCategory.Component when item.Id.Contains("gear") => SpriteGenerator.Instance?.GenerateGear(item.SpriteColor),
             Enums.ItemCategory.Component when item.Id.Contains("cable") => SpriteGenerator.Instance?.GenerateCable(item.SpriteColor),
             Enums.ItemCategory.Component when item.Id.Contains("circuit") => SpriteGenerator.Instance?.GenerateCircuit(item.SpriteColor),
+            Enums.ItemCategory.Science => SpriteGenerator.Instance?.GenerateCircuit(item.SpriteColor, 2),
             _ => SpriteGenerator.Instance?.GeneratePlate(item.SpriteColor)
         };
     }
@@ -708,6 +798,21 @@ public partial class BuildingUI : CanvasLayer
                 stack.Remove(1);
                 if (stack.Count <= 0)
                     stack.Item = null;
+            }
+        }
+        else if (_currentBuilding is Lab lab)
+        {
+            var packTypes = new[] { "automation_science", "logistic_science" };
+            if (slotIndex < packTypes.Length)
+            {
+                var packId = packTypes[slotIndex];
+                if (lab.ScienceSlots.TryGetValue(packId, out var stack) && !stack.IsEmpty())
+                {
+                    item = stack.Item;
+                    stack.Remove(1);
+                    if (stack.Count <= 0)
+                        stack.Item = null;
+                }
             }
         }
 

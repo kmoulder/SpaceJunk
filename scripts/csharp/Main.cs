@@ -42,6 +42,9 @@ public partial class Main : Node2D
     [Export]
     public BuildingUI BuildingUi { get; set; }
 
+    [Export]
+    public ResearchUI ResearchUi { get; set; }
+
     // Camera movement
     private Vector2 _cameraTargetPosition = Vector2.Zero;
     private float _cameraZoomTarget = 1.0f;
@@ -68,6 +71,7 @@ public partial class Main : Node2D
         InventoryUi ??= GetNodeOrNull<InventoryUI>("InventoryUI");
         BuildMenuUi ??= GetNodeOrNull<BuildMenuUI>("BuildMenuUI");
         BuildingUi ??= GetNodeOrNull<BuildingUI>("BuildingUI");
+        ResearchUi ??= GetNodeOrNull<ResearchUI>("ResearchUI");
 
         GD.Print($"[Main] Camera: {Camera != null}, Background: {Background != null}, GameWorld: {GameWorld != null}");
         GD.Print($"[Main] Hud: {Hud != null}, InventoryUi: {InventoryUi != null}, BuildMenuUi: {BuildMenuUi != null}");
@@ -255,7 +259,7 @@ public partial class Main : Node2D
 
     private void GiveStartingItems()
     {
-        // Give starter resources for testing Phase 2 buildings
+        // Give starter resources for testing Phase 2 buildings and Phase 3 research
         var items = new[]
         {
             ("iron_ore", 50),
@@ -263,6 +267,7 @@ public partial class Main : Node2D
             ("coal", 20),
             ("stone", 30),
             ("iron_plate", 20),
+            ("copper_plate", 20),
             ("iron_gear", 10),
             ("electronic_circuit", 10)
         };
@@ -435,7 +440,7 @@ public partial class Main : Node2D
             return;
 
         // Open building UI for buildings with inventory
-        if (building is SmallChest or StoneFurnace)
+        if (building is SmallChest or StoneFurnace or Lab)
         {
             BuildingUi?.OpenForBuilding(building);
         }
@@ -459,6 +464,8 @@ public partial class Main : Node2D
         if (BuildingUi != null && BuildingUi.Visible && BuildingUi.IsOpen)
             return true;
         if (BuildMenuUi != null && BuildMenuUi.Visible)
+            return true;
+        if (ResearchUi != null && ResearchUi.Visible)
             return true;
         return false;
     }

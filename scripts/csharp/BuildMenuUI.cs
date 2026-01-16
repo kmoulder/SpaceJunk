@@ -159,7 +159,8 @@ public partial class BuildMenuUI : CanvasLayer
             Enums.BuildingCategory.Processing,
             Enums.BuildingCategory.Storage,
             Enums.BuildingCategory.Transport,
-            Enums.BuildingCategory.Power
+            Enums.BuildingCategory.Power,
+            Enums.BuildingCategory.Research
         };
 
         foreach (var category in categoriesToShow)
@@ -299,6 +300,7 @@ public partial class BuildMenuUI : CanvasLayer
             "inserter" => SpriteGenerator.Instance?.GenerateInserter(false),
             "long_inserter" => SpriteGenerator.Instance?.GenerateInserter(true),
             "solar_panel" => SpriteGenerator.Instance?.GenerateSolarPanel(),
+            "lab" => SpriteGenerator.Instance?.GenerateLab(),
             _ => SpriteGenerator.Instance?.GenerateBuilding(new Color(0.4f, 0.4f, 0.5f), building.Size)
         };
     }

@@ -322,6 +322,7 @@ public partial class BuildingManager : Node
             "inserter" => SpriteGenerator.Instance.GenerateInserter(false),
             "long_inserter" => SpriteGenerator.Instance.GenerateInserter(true),
             "solar_panel" => SpriteGenerator.Instance.GenerateSolarPanel(),
+            "lab" => SpriteGenerator.Instance.GenerateLab(),
             _ => SpriteGenerator.Instance.GenerateBuilding(new Color(0.4f, 0.4f, 0.5f), buildingDef.Size)
         };
     }
@@ -335,6 +336,7 @@ public partial class BuildingManager : Node
             "transport_belt" => new ConveyorBelt(),
             "inserter" => new Inserter(),
             "long_inserter" => new Inserter { IsLong = true },
+            "lab" => new Lab(),
             _ => new BuildingEntity()
         };
 
@@ -484,6 +486,19 @@ public partial class BuildingManager : Node
             RequiredTechnology = "solar_energy",
             BuildCostIds = new[] { "steel_plate", "electronic_circuit", "copper_plate" },
             BuildCostCounts = new[] { 5, 15, 5 }
+        });
+
+        // Lab
+        RegisterBuilding(new BuildingResource
+        {
+            Id = "lab",
+            Name = "Lab",
+            Description = "Consumes science packs to research technologies",
+            Size = new Vector2I(2, 2),
+            Category = Enums.BuildingCategory.Research,
+            CanRotate = false,
+            BuildCostIds = new[] { "iron_plate", "copper_plate", "electronic_circuit" },
+            BuildCostCounts = new[] { 10, 10, 10 }
         });
     }
 }
