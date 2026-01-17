@@ -117,16 +117,16 @@ public partial class CraftingManager : Node
     /// <summary>
     /// Check if a recipe can be crafted (player has ingredients)
     /// </summary>
-    public bool CanCraft(RecipeResource recipe)
+    public bool CanCraft(RecipeResource recipe, int craftCount = 1)
     {
-        if (recipe == null)
+        if (recipe == null || craftCount <= 0)
             return false;
 
         var ingredients = recipe.GetIngredients();
         foreach (var ing in ingredients)
         {
             string itemId = ing["item_id"].AsString();
-            int count = ing["count"].AsInt32();
+            int count = ing["count"].AsInt32() * craftCount;
             var item = InventoryManager.Instance?.GetItem(itemId);
 
             if (item == null || !InventoryManager.Instance.HasItem(item, count))
@@ -134,6 +134,128 @@ public partial class CraftingManager : Node
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Check if a recipe can be crafted, including crafting intermediate items if needed.
+    /// Returns true if we have all raw materials to craft precursors.
+    /// </summary>
+    public bool CanCraftWithIntermediates(RecipeResource recipe, int craftCount = 1)
+    {
+        if (recipe == null || craftCount <= 0)
+            return false;
+
+        // If we can craft directly, we're good
+        if (CanCraft(recipe, craftCount))
+            return true;
+
+        // Try to see if we can craft the missing ingredients
+        // Build a virtual inventory to track what we'd have after crafting intermediates
+        var virtualInventory = new System.Collections.Generic.Dictionary<string, int>();
+
+        // Copy current inventory by scanning all slots
+        if (InventoryManager.Instance != null)
+        {
+            foreach (var slot in InventoryManager.Instance.Inventory)
+            {
+                if (!slot.IsEmpty() && slot.Item != null)
+                {
+                    string itemId = slot.Item.Id;
+                    if (!virtualInventory.ContainsKey(itemId))
+                        virtualInventory[itemId] = 0;
+                    virtualInventory[itemId] += slot.Count;
+                }
+            }
+        }
+
+        // Check if we can satisfy the recipe with intermediate crafting
+        return CanSatisfyRecipeRecursively(recipe, craftCount, virtualInventory, new System.Collections.Generic.HashSet<string>());
+    }
+
+    /// <summary>
+    /// Recursively check if we can satisfy a recipe's ingredients, crafting intermediates as needed.
+    /// </summary>
+    private bool CanSatisfyRecipeRecursively(RecipeResource recipe, int craftCount,
+        System.Collections.Generic.Dictionary<string, int> virtualInventory,
+        System.Collections.Generic.HashSet<string> visitedRecipes)
+    {
+        // Prevent infinite loops
+        if (visitedRecipes.Contains(recipe.Id))
+            return false;
+        visitedRecipes.Add(recipe.Id);
+
+        var ingredients = recipe.GetIngredients();
+        foreach (var ing in ingredients)
+        {
+            string itemId = ing["item_id"].AsString();
+            int needed = ing["count"].AsInt32() * craftCount;
+
+            // Check what we have
+            int have = virtualInventory.TryGetValue(itemId, out int val) ? val : 0;
+            int missing = needed - have;
+
+            if (missing <= 0)
+                continue; // We have enough
+
+            // Try to find a player-craftable recipe for this item
+            var itemRecipe = FindRecipeForItem(itemId);
+            if (itemRecipe == null || itemRecipe.CraftingType != Enums.CraftingType.Player)
+                return false; // Can't hand-craft this item
+
+            // Calculate how many times we need to craft the recipe
+            var results = itemRecipe.GetResults();
+            int outputPerCraft = 1;
+            foreach (var result in results)
+            {
+                if (result["item_id"].AsString() == itemId)
+                {
+                    outputPerCraft = result["count"].AsInt32();
+                    break;
+                }
+            }
+
+            int craftTimes = (missing + outputPerCraft - 1) / outputPerCraft; // Ceiling division
+
+            // Recursively check if we can craft the intermediate
+            if (!CanSatisfyRecipeRecursively(itemRecipe, craftTimes, virtualInventory,
+                    new System.Collections.Generic.HashSet<string>(visitedRecipes)))
+                return false;
+
+            // Simulate crafting: consume ingredients
+            var subIngredients = itemRecipe.GetIngredients();
+            foreach (var subIng in subIngredients)
+            {
+                string subItemId = subIng["item_id"].AsString();
+                int subNeeded = subIng["count"].AsInt32() * craftTimes;
+                if (virtualInventory.ContainsKey(subItemId))
+                    virtualInventory[subItemId] -= subNeeded;
+            }
+
+            // Add the crafted items
+            int produced = outputPerCraft * craftTimes;
+            if (!virtualInventory.ContainsKey(itemId))
+                virtualInventory[itemId] = 0;
+            virtualInventory[itemId] += produced;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Find a recipe that produces the given item ID
+    /// </summary>
+    public RecipeResource FindRecipeForItem(string itemId)
+    {
+        foreach (var recipe in _recipeRegistry.Values)
+        {
+            var results = recipe.GetResults();
+            foreach (var result in results)
+            {
+                if (result["item_id"].AsString() == itemId)
+                    return recipe;
+            }
+        }
+        return null;
     }
 
     /// <summary>
@@ -178,6 +300,149 @@ public partial class CraftingManager : Node
 
         if (!IsCrafting)
             StartNextCraft();
+
+        return true;
+    }
+
+    /// <summary>
+    /// Queue a recipe for crafting, automatically crafting intermediate items as needed.
+    /// This allows crafting complex items when you have raw materials but not intermediates.
+    /// </summary>
+    public bool QueueCraftWithIntermediates(RecipeResource recipe, int count = 1)
+    {
+        if (recipe == null || count <= 0)
+            return false;
+
+        if (recipe.CraftingType != Enums.CraftingType.Player)
+            return false;
+
+        // If we can craft directly, just do that
+        if (CanCraft(recipe, count))
+            return QueueCraft(recipe, count);
+
+        // Check if we can craft with intermediates
+        if (!CanCraftWithIntermediates(recipe, count))
+            return false;
+
+        // Build the list of crafts needed, in order
+        var craftList = new System.Collections.Generic.List<(RecipeResource recipe, int count)>();
+
+        // Build virtual inventory for planning
+        var virtualInventory = new System.Collections.Generic.Dictionary<string, int>();
+        if (InventoryManager.Instance != null)
+        {
+            foreach (var slot in InventoryManager.Instance.Inventory)
+            {
+                if (!slot.IsEmpty() && slot.Item != null)
+                {
+                    string itemId = slot.Item.Id;
+                    if (!virtualInventory.ContainsKey(itemId))
+                        virtualInventory[itemId] = 0;
+                    virtualInventory[itemId] += slot.Count;
+                }
+            }
+        }
+
+        // Recursively build the craft list
+        if (!BuildCraftList(recipe, count, virtualInventory, craftList, new System.Collections.Generic.HashSet<string>()))
+            return false;
+
+        // Now execute all the crafts in order
+        foreach (var (craftRecipe, craftCount) in craftList)
+        {
+            // At this point we should have ingredients for each craft
+            // because we planned it out with the virtual inventory
+            if (!QueueCraft(craftRecipe, craftCount))
+            {
+                GD.PrintErr($"Failed to queue intermediate craft: {craftRecipe.Name}");
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Build a list of crafts needed to satisfy a recipe, in the correct order.
+    /// </summary>
+    private bool BuildCraftList(RecipeResource recipe, int craftCount,
+        System.Collections.Generic.Dictionary<string, int> virtualInventory,
+        System.Collections.Generic.List<(RecipeResource recipe, int count)> craftList,
+        System.Collections.Generic.HashSet<string> visitedRecipes)
+    {
+        // Prevent infinite loops
+        if (visitedRecipes.Contains(recipe.Id))
+            return false;
+        visitedRecipes.Add(recipe.Id);
+
+        var ingredients = recipe.GetIngredients();
+
+        // First, check each ingredient and queue intermediate crafts
+        foreach (var ing in ingredients)
+        {
+            string itemId = ing["item_id"].AsString();
+            int needed = ing["count"].AsInt32() * craftCount;
+
+            // Check what we have
+            int have = virtualInventory.TryGetValue(itemId, out int val) ? val : 0;
+            int missing = needed - have;
+
+            if (missing <= 0)
+                continue; // We have enough
+
+            // Find a recipe to craft this item
+            var itemRecipe = FindRecipeForItem(itemId);
+            if (itemRecipe == null || itemRecipe.CraftingType != Enums.CraftingType.Player)
+                return false;
+
+            // Calculate how many times we need to craft
+            var results = itemRecipe.GetResults();
+            int outputPerCraft = 1;
+            foreach (var result in results)
+            {
+                if (result["item_id"].AsString() == itemId)
+                {
+                    outputPerCraft = result["count"].AsInt32();
+                    break;
+                }
+            }
+
+            int craftTimes = (missing + outputPerCraft - 1) / outputPerCraft;
+
+            // Recursively build craft list for the intermediate
+            if (!BuildCraftList(itemRecipe, craftTimes, virtualInventory, craftList,
+                    new System.Collections.Generic.HashSet<string>(visitedRecipes)))
+                return false;
+
+            // Simulate crafting: consume ingredients from virtual inventory
+            var subIngredients = itemRecipe.GetIngredients();
+            foreach (var subIng in subIngredients)
+            {
+                string subItemId = subIng["item_id"].AsString();
+                int subNeeded = subIng["count"].AsInt32() * craftTimes;
+                if (virtualInventory.ContainsKey(subItemId))
+                    virtualInventory[subItemId] -= subNeeded;
+            }
+
+            // Add produced items to virtual inventory
+            // Note: The intermediate recipe was already added to craftList by the recursive BuildCraftList call
+            int produced = outputPerCraft * craftTimes;
+            if (!virtualInventory.ContainsKey(itemId))
+                virtualInventory[itemId] = 0;
+            virtualInventory[itemId] += produced;
+        }
+
+        // Now consume ingredients for the final recipe from virtual inventory
+        foreach (var ing in ingredients)
+        {
+            string itemId = ing["item_id"].AsString();
+            int needed = ing["count"].AsInt32() * craftCount;
+            if (virtualInventory.ContainsKey(itemId))
+                virtualInventory[itemId] -= needed;
+        }
+
+        // Add the final recipe to craft list
+        craftList.Add((recipe, craftCount));
 
         return true;
     }

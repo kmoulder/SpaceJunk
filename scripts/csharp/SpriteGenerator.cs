@@ -716,6 +716,114 @@ public partial class SpriteGenerator : Node
     }
 
     /// <summary>
+    /// Generate collector building sprite
+    /// </summary>
+    public Texture2D GenerateCollector(int tier = 1)
+    {
+        string cacheKey = $"collector_{tier}";
+        if (_textureCache.TryGetValue(cacheKey, out var cached))
+            return cached;
+
+        int size = Constants.TileSize;
+        var img = Image.CreateEmpty(size, size, false, Image.Format.Rgba8);
+        img.Fill(Colors.Transparent);
+
+        // Tier-based colors
+        Color bodyColor = tier switch
+        {
+            1 => new Color(0.35f, 0.4f, 0.45f),
+            _ => new Color(0.3f, 0.45f, 0.5f)
+        };
+        Color darkColor = bodyColor.Darkened(0.25f);
+        Color accentColor = tier switch
+        {
+            1 => new Color(0.6f, 0.6f, 0.2f),
+            _ => new Color(0.2f, 0.7f, 0.5f)
+        };
+
+        // Main circular base
+        int cx = size / 2;
+        int cy = size / 2;
+        DrawFilledCircle(img, cx, cy, 12, bodyColor);
+        DrawFilledCircle(img, cx, cy, 10, darkColor);
+
+        // Central pivot/motor
+        DrawFilledCircle(img, cx, cy, 6, bodyColor);
+        DrawFilledCircle(img, cx, cy, 3, accentColor);
+
+        // Arm mount indicators (small circles around perimeter)
+        for (int i = 0; i < 4; i++)
+        {
+            float angle = i * Mathf.Pi / 2.0f;
+            int ax = cx + (int)(Mathf.Cos(angle) * 9);
+            int ay = cy + (int)(Mathf.Sin(angle) * 9);
+            DrawFilledCircle(img, ax, ay, 2, accentColor);
+        }
+
+        // Range indicator ring (subtle)
+        Color rangeColor = new Color(accentColor.R, accentColor.G, accentColor.B, 0.3f);
+        for (int angle = 0; angle < 360; angle += 15)
+        {
+            float rad = angle * Mathf.Pi / 180.0f;
+            int rx = cx + (int)(Mathf.Cos(rad) * 14);
+            int ry = cy + (int)(Mathf.Sin(rad) * 14);
+            if (rx >= 0 && rx < size && ry >= 0 && ry < size)
+                img.SetPixel(rx, ry, rangeColor);
+        }
+
+        var texture = ImageTexture.CreateFromImage(img);
+        _textureCache[cacheKey] = texture;
+        return texture;
+    }
+
+    /// <summary>
+    /// Generate collector claw/grabber sprite
+    /// </summary>
+    public Texture2D GenerateCollectorClaw()
+    {
+        string cacheKey = "collector_claw";
+        if (_textureCache.TryGetValue(cacheKey, out var cached))
+            return cached;
+
+        int size = 16;
+        var img = Image.CreateEmpty(size, size, false, Image.Format.Rgba8);
+        img.Fill(Colors.Transparent);
+
+        Color clawColor = new Color(0.5f, 0.5f, 0.55f);
+        Color darkColor = clawColor.Darkened(0.3f);
+
+        // Central joint
+        int cx = size / 2;
+        int cy = size / 2;
+        DrawFilledCircle(img, cx, cy, 3, clawColor);
+
+        // Two claw prongs
+        // Left prong
+        for (int y = cy; y < cy + 6 && y < size; y++)
+        {
+            int offset = (y - cy) / 2;
+            if (cx - 3 - offset >= 0)
+                img.SetPixel(cx - 3 - offset, y, darkColor);
+            if (cx - 2 - offset >= 0)
+                img.SetPixel(cx - 2 - offset, y, clawColor);
+        }
+
+        // Right prong
+        for (int y = cy; y < cy + 6 && y < size; y++)
+        {
+            int offset = (y - cy) / 2;
+            if (cx + 3 + offset < size)
+                img.SetPixel(cx + 3 + offset, y, darkColor);
+            if (cx + 2 + offset < size)
+                img.SetPixel(cx + 2 + offset, y, clawColor);
+        }
+
+        var texture = ImageTexture.CreateFromImage(img);
+        _textureCache[cacheKey] = texture;
+        return texture;
+    }
+
+    /// <summary>
     /// Generate foundation tile sprite
     /// </summary>
     public Texture2D GenerateFoundation()

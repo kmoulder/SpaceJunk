@@ -361,6 +361,8 @@ public partial class BuildingManager : Node
             "solar_panel" => SpriteGenerator.Instance.GenerateSolarPanel(),
             "lab" => SpriteGenerator.Instance.GenerateLab(),
             "foundation" => SpriteGenerator.Instance.GenerateFoundation(),
+            "collector" => SpriteGenerator.Instance.GenerateCollector(1),
+            "collector_mk2" => SpriteGenerator.Instance.GenerateCollector(2),
             _ => SpriteGenerator.Instance.GenerateBuilding(new Color(0.4f, 0.4f, 0.5f), buildingDef.Size)
         };
     }
@@ -377,11 +379,20 @@ public partial class BuildingManager : Node
             "assembler_mk1" => new Assembler { Tier = 1 },
             "assembler_mk2" => new Assembler { Tier = 2 },
             "lab" => new Lab(),
+            "collector" => CreateCollector(1),
+            "collector_mk2" => CreateCollector(2),
             _ => new BuildingEntity()
         };
 
         building.Initialize(buildingDef, pos, rotation);
         return building;
+    }
+
+    private Collector CreateCollector(int tier)
+    {
+        var collector = new Collector();
+        collector.InitializeCollector(tier);
+        return collector;
     }
 
     private bool CanAffordBuilding(BuildingResource buildingDef)
@@ -568,6 +579,35 @@ public partial class BuildingManager : Node
             RequiredTechnology = "station_expansion",
             BuildCostIds = new[] { "foundation" },
             BuildCostCounts = new[] { 1 }
+        });
+
+        // Collector (basic debris collection)
+        RegisterBuilding(new BuildingResource
+        {
+            Id = "collector",
+            Name = "Collector",
+            Description = "Automatically collects nearby debris. Range: 2 tiles.",
+            Size = new Vector2I(1, 1),
+            Category = Enums.BuildingCategory.Collection,
+            CanRotate = false,
+            StorageSlots = 1,
+            BuildCostIds = new[] { "iron_plate", "iron_gear", "electronic_circuit" },
+            BuildCostCounts = new[] { 5, 3, 2 }
+        });
+
+        // Collector Mk2 (advanced debris collection)
+        RegisterBuilding(new BuildingResource
+        {
+            Id = "collector_mk2",
+            Name = "Collector Mk2",
+            Description = "Advanced debris collector. Range: 4 tiles.",
+            Size = new Vector2I(1, 1),
+            Category = Enums.BuildingCategory.Collection,
+            CanRotate = false,
+            StorageSlots = 1,
+            RequiredTechnology = "advanced_collection",
+            BuildCostIds = new[] { "steel_plate", "iron_gear", "electronic_circuit" },
+            BuildCostCounts = new[] { 5, 5, 5 }
         });
     }
 }

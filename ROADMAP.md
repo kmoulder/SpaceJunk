@@ -111,7 +111,7 @@ This document outlines the phased implementation plan for Space Factory. Each ph
 
 ---
 
-## Phase 3: Research & Expansion *(In Progress)*
+## Phase 3: Research & Expansion *(Mostly Complete)*
 
 **Goal**: Tech tree progression and station expansion
 
@@ -121,6 +121,7 @@ This document outlines the phased implementation plan for Space Factory. Each ph
 - [x] Lab building (Lab.cs, 2x2, consumes science packs)
 - [x] Research UI (ResearchUI.cs, toggle with 'T')
 - [x] Research progress tracking (AddScience(), progress bar)
+- [x] Research completion notifications in HUD
 
 ### 3.2 Science Packs
 - [x] Automation Science Pack (red) - item registered
@@ -129,14 +130,16 @@ This document outlines the phased implementation plan for Space Factory. Each ph
 - [x] Lab consumption mechanics (1 pack per second when researching)
 
 ### 3.3 Station Expansion
-- [ ] Foundation item
-- [ ] Foundation crafting recipe
-- [ ] Foundation placement on edges
-- [ ] Station boundary detection
+- [x] Foundation item
+- [x] Foundation crafting recipe
+- [x] Foundation placement on edges (adjacent to existing station)
+- [x] Foundation category in build menu
+- [x] Station boundary detection
 
 ### 3.4 Assembler Building
 - [x] Assembler Mk1 entity (Assembler.cs, tier system)
-- [ ] Recipe selection UI
+- [x] Recipe selection UI (in BuildingUI)
+- [x] Recipe requirements display with color-coded ingredients
 - [x] Multi-input handling (4 input slots)
 - [x] Crafting progress display (GetCraftingProgress())
 
@@ -148,9 +151,21 @@ This document outlines the phased implementation plan for Space Factory. Each ph
 - [ ] Medium Chest
 
 ### 3.6 Debris Collector
-- [ ] Automated debris collection building
-- [ ] Collection range visualization
-- [ ] Output to adjacent belts/chests
+- [x] Automated debris collection building (Collector.cs)
+- [x] Animated robotic arm (Extending, Grabbing, Retracting states)
+- [x] 4 output slots (stops when full, encourages automation)
+- [x] Output via inserters or manual extraction
+- [x] Collection range based on tier (Constants.CollectorTier1Range)
+
+### 3.7 UI Improvements (Added)
+- [x] Draggable windows (BuildingUI, InventoryUI, RecipeUI, ResearchUI)
+- [x] X close buttons on all windows
+- [x] Craft queue display in HUD with progress
+- [x] x5 batch crafting (Shift+click)
+- [x] Recipe list view (press R)
+- [x] Game continues during build mode
+- [x] Research unlock refresh in build menu
+- [x] Recursive crafting (auto-craft intermediates when raw materials available)
 
 **Phase 3 Deliverable**: Player can research technologies, automate science pack production, and expand the station.
 
@@ -289,16 +304,24 @@ This document outlines the phased implementation plan for Space Factory. Each ph
 
 ## Current Focus
 
-**Active Phase**: Phase 3 - Research & Expansion
+**Active Phase**: Phase 3 - Research & Expansion (Mostly Complete)
 
 **Completed in Phase 3**:
 1. ✓ Research system (TechnologyResource, ResearchManager with 8 techs)
 2. ✓ Research UI (ResearchUI.cs, toggle with 'T', shows tech tree with progress)
-3. ✓ Lab building (2x2, consumes science packs, feeds ResearchManager)
-4. ✓ Science packs (red/green items and crafting recipes)
-5. ✓ Assembler Mk1 (Assembler.cs with tier system and 4 input slots)
-6. ✓ Long Inserter (unlocked via automation_1 research)
-7. ✓ Crafting UI (RecipeUI.cs, toggle with 'C', hand-crafting panel)
+3. ✓ Research completion notifications in HUD
+4. ✓ Lab building (2x2, consumes science packs, feeds ResearchManager)
+5. ✓ Science packs (red/green items and crafting recipes)
+6. ✓ Assembler Mk1 with recipe selection UI and ingredient requirements display
+7. ✓ Long Inserter (unlocked via automation_1 research)
+8. ✓ Crafting UI (RecipeUI.cs, toggle with 'C', hand-crafting panel)
+9. ✓ x5 batch crafting (Shift+click)
+10. ✓ Craft queue display in HUD
+11. ✓ Debris Collector building with animated arm and 4 output slots
+12. ✓ Foundation placement for station expansion
+13. ✓ Draggable windows with X close buttons
+14. ✓ Recipe list view (press R)
+15. ✓ Recursive crafting (auto-craft intermediates like Factorio)
 
 **Remaining from Phase 1/2**:
 1. Collection feedback (particles/sounds when clicking debris)
@@ -307,10 +330,10 @@ This document outlines the phased implementation plan for Space Factory. Each ph
 4. Power pole placement and network visualization
 
 **Remaining in Phase 3**:
-1. Assembler recipe selection UI (click to choose what to craft)
-2. Station expansion with foundation placement
-3. Fast Inserter, Underground Belt, Splitter, Medium Chest
-4. Debris collector building
+1. Fast Inserter
+2. Underground Belt
+3. Splitter
+4. Medium Chest
 
 ---
 

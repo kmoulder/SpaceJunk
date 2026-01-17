@@ -334,6 +334,12 @@ public partial class ResearchManager : Node
             "Unlocks Foundation crafting for station expansion",
             new[] { "steel_processing" }, new[] { "automation_science" }, new[] { 25 },
             new[] { "foundation" }, new[] { "foundation" }));
+
+        // Debris collection technologies
+        RegisterTechnology(CreateTech("advanced_collection", "Advanced Collection",
+            "Unlocks Collector Mk2 with extended range (4 tiles)",
+            new[] { "automation_1" }, new[] { "automation_science", "logistic_science" }, new[] { 30, 30 },
+            new[] { "collector_mk2" }));
     }
 
     /// <summary>

@@ -28,6 +28,11 @@ public partial class InventoryUI : CanvasLayer
     private int _draggingFrom = -1;
     public bool IsOpen { get; private set; } = false;
 
+    // Window dragging
+    private bool _isDraggingWindow = false;
+    private Vector2 _dragOffset = Vector2.Zero;
+    private HBoxContainer _titleBar;
+
     // Tooltip
     private PanelContainer _tooltip;
     private Label _tooltipLabel;
@@ -69,6 +74,36 @@ public partial class InventoryUI : CanvasLayer
 
         if (CloseButton != null)
             CloseButton.Pressed += HideInventory;
+
+        // Setup title bar for dragging
+        _titleBar = GetNodeOrNull<HBoxContainer>("Panel/VBox/TitleBar");
+        if (_titleBar != null)
+        {
+            _titleBar.GuiInput += OnTitleBarInput;
+        }
+    }
+
+    private void OnTitleBarInput(InputEvent @event)
+    {
+        if (@event is InputEventMouseButton mouseButton)
+        {
+            if (mouseButton.ButtonIndex == MouseButton.Left)
+            {
+                if (mouseButton.Pressed)
+                {
+                    _isDraggingWindow = true;
+                    _dragOffset = Panel.Position - mouseButton.GlobalPosition;
+                }
+                else
+                {
+                    _isDraggingWindow = false;
+                }
+            }
+        }
+        else if (@event is InputEventMouseMotion mouseMotion && _isDraggingWindow)
+        {
+            Panel.Position = mouseMotion.GlobalPosition + _dragOffset;
+        }
     }
 
     private void SetupInventoryGrid()

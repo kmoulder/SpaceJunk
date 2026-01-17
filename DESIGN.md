@@ -83,7 +83,7 @@ Steel Plate + Copper Plate + Plastic ──────────────�
 ### Collection Buildings
 | Building | Function | Inputs | Outputs |
 |----------|----------|--------|---------|
-| Debris Collector | Auto-collects debris in range | Power | Raw materials |
+| Collector | Auto-collects debris in range with animated arm, 4 output slots | Power | Raw materials |
 | Magnet Array | Pulls debris toward station | Power | Attracted debris |
 | Tractor Beam | Long-range targeted collection | Power | Selected debris |
 
@@ -257,8 +257,20 @@ START
 - Inventory (I)
 - Crafting menu (C or in inventory)
 - Research tree (T)
+- Recipe list (R)
 - Building recipes (when building selected)
 - Settings (Escape)
+
+### Crafting Features
+- **Direct Crafting**: Click "Craft" when you have all ingredients
+- **Recursive Crafting**: Click "Craft+" (blue button) to auto-craft missing intermediate items
+  - Example: Craft Electronic Circuit with only copper plates and iron plates
+  - System automatically queues Copper Cable first, then the circuit
+- **Batch Crafting**: x5 button to queue 5 items at once
+- **Visual Feedback**:
+  - Green button = direct craft possible
+  - Blue button = will craft intermediates first
+  - Gray button = missing raw materials
 
 ---
 

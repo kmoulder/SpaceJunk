@@ -41,6 +41,12 @@ public partial class RecipeUI : CanvasLayer
     private ProgressBar _craftingProgressBar;
 
     /// <summary>
+    /// Dragging state
+    /// </summary>
+    private bool _isDragging = false;
+    private Vector2 _dragOffset = Vector2.Zero;
+
+    /// <summary>
     /// Crafting status label
     /// </summary>
     private Label _craftingStatusLabel;
@@ -160,14 +166,30 @@ public partial class RecipeUI : CanvasLayer
         vbox.AddThemeConstantOverride("separation", 10);
         margin.AddChild(vbox);
 
-        // Title
+        // Title bar with close button (draggable)
+        var titleBar = new HBoxContainer { Name = "TitleBar" };
+        vbox.AddChild(titleBar);
+
         var title = new Label
         {
-            Text = "Crafting (C)",
-            HorizontalAlignment = HorizontalAlignment.Center
+            Text = "Crafting",
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill
         };
         title.AddThemeFontSizeOverride("font_size", 18);
-        vbox.AddChild(title);
+        titleBar.AddChild(title);
+
+        var closeBtn = new Button { Text = "X", CustomMinimumSize = new Vector2(28, 28) };
+        var closeBtnStyle = new StyleBoxFlat { BgColor = new Color(0.4f, 0.2f, 0.2f) };
+        closeBtnStyle.SetCornerRadiusAll(4);
+        closeBtn.AddThemeStyleboxOverride("normal", closeBtnStyle);
+        var closeBtnHover = new StyleBoxFlat { BgColor = new Color(0.6f, 0.3f, 0.3f) };
+        closeBtnHover.SetCornerRadiusAll(4);
+        closeBtn.AddThemeStyleboxOverride("hover", closeBtnHover);
+        closeBtn.Pressed += () => Visible = false;
+        titleBar.AddChild(closeBtn);
+
+        // Make title bar draggable
+        titleBar.GuiInput += OnTitleBarInput;
 
         // Filter buttons
         _filterContainer = new HBoxContainer();
@@ -494,26 +516,39 @@ public partial class RecipeUI : CanvasLayer
             var spacer = new Control { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
             buttonHbox.AddChild(spacer);
 
-            // Check if can craft
-            bool canCraft = CraftingManager.Instance?.CanCraft(recipe) ?? false;
+            // Check if can craft directly or with intermediates
+            bool canCraftDirect1 = CraftingManager.Instance?.CanCraft(recipe, 1) ?? false;
+            bool canCraftDirect5 = CraftingManager.Instance?.CanCraft(recipe, 5) ?? false;
+            bool canCraftWithInt1 = CraftingManager.Instance?.CanCraftWithIntermediates(recipe, 1) ?? false;
+            bool canCraftWithInt5 = CraftingManager.Instance?.CanCraftWithIntermediates(recipe, 5) ?? false;
 
-            var craftBtn = new Button
-            {
-                Text = "Craft",
-                CustomMinimumSize = new Vector2(60, 24),
-                Disabled = !canCraft
-            };
-
-            var craftBtnStyle = new StyleBoxFlat { BgColor = canCraft ? new Color(0.2f, 0.4f, 0.3f) : new Color(0.25f, 0.25f, 0.25f) };
-            craftBtnStyle.SetCornerRadiusAll(4);
-            craftBtn.AddThemeStyleboxOverride("normal", craftBtnStyle);
-
-            var craftBtnHoverStyle = new StyleBoxFlat { BgColor = new Color(0.3f, 0.5f, 0.4f) };
-            craftBtnHoverStyle.SetCornerRadiusAll(4);
-            craftBtn.AddThemeStyleboxOverride("hover", craftBtnHoverStyle);
+            bool canCraft1 = canCraftDirect1 || canCraftWithInt1;
+            bool canCraft5 = canCraftDirect5 || canCraftWithInt5;
+            bool needsIntermediates1 = !canCraftDirect1 && canCraftWithInt1;
+            bool needsIntermediates5 = !canCraftDirect5 && canCraftWithInt5;
 
             var craftBtnDisabledStyle = new StyleBoxFlat { BgColor = new Color(0.2f, 0.2f, 0.2f) };
             craftBtnDisabledStyle.SetCornerRadiusAll(4);
+
+            var craftBtnHoverStyle = new StyleBoxFlat { BgColor = new Color(0.3f, 0.5f, 0.4f) };
+            craftBtnHoverStyle.SetCornerRadiusAll(4);
+
+            // Craft button - blue/teal if needs intermediates, green if direct
+            var craftBtn = new Button
+            {
+                Text = needsIntermediates1 ? "Craft+" : "Craft",
+                TooltipText = needsIntermediates1 ? "Will craft required intermediate items first" : "Craft item",
+                CustomMinimumSize = new Vector2(60, 24),
+                Disabled = !canCraft1
+            };
+
+            // Use different color when crafting with intermediates (blue-ish)
+            Color btn1Color = !canCraft1 ? new Color(0.25f, 0.25f, 0.25f) :
+                              needsIntermediates1 ? new Color(0.2f, 0.3f, 0.45f) : new Color(0.2f, 0.4f, 0.3f);
+            var craftBtn1Style = new StyleBoxFlat { BgColor = btn1Color };
+            craftBtn1Style.SetCornerRadiusAll(4);
+            craftBtn.AddThemeStyleboxOverride("normal", craftBtn1Style);
+            craftBtn.AddThemeStyleboxOverride("hover", craftBtnHoverStyle);
             craftBtn.AddThemeStyleboxOverride("disabled", craftBtnDisabledStyle);
 
             RecipeResource capturedRecipe = recipe;
@@ -523,11 +558,17 @@ public partial class RecipeUI : CanvasLayer
             // Craft x5 button
             var craft5Btn = new Button
             {
-                Text = "x5",
+                Text = needsIntermediates5 ? "x5+" : "x5",
+                TooltipText = needsIntermediates5 ? "Will craft required intermediate items first" : "Craft 5 items",
                 CustomMinimumSize = new Vector2(40, 24),
-                Disabled = !canCraft
+                Disabled = !canCraft5
             };
-            craft5Btn.AddThemeStyleboxOverride("normal", craftBtnStyle);
+
+            Color btn5Color = !canCraft5 ? new Color(0.25f, 0.25f, 0.25f) :
+                              needsIntermediates5 ? new Color(0.2f, 0.3f, 0.45f) : new Color(0.2f, 0.4f, 0.3f);
+            var craftBtn5Style = new StyleBoxFlat { BgColor = btn5Color };
+            craftBtn5Style.SetCornerRadiusAll(4);
+            craft5Btn.AddThemeStyleboxOverride("normal", craftBtn5Style);
             craft5Btn.AddThemeStyleboxOverride("hover", craftBtnHoverStyle);
             craft5Btn.AddThemeStyleboxOverride("disabled", craftBtnDisabledStyle);
             craft5Btn.Pressed += () => OnCraftPressed(capturedRecipe, 5);
@@ -539,16 +580,11 @@ public partial class RecipeUI : CanvasLayer
 
     private void OnCraftPressed(RecipeResource recipe, int count = 1)
     {
-        for (int i = 0; i < count; i++)
+        // Use QueueCraftWithIntermediates which will automatically craft
+        // intermediate items if needed, or fall back to direct crafting
+        if (CraftingManager.Instance != null)
         {
-            if (CraftingManager.Instance?.CanCraft(recipe) == true)
-            {
-                CraftingManager.Instance.QueueCraft(recipe);
-            }
-            else
-            {
-                break;
-            }
+            CraftingManager.Instance.QueueCraftWithIntermediates(recipe, count);
         }
         UpdateCraftingStatus();
         RefreshRecipeList();
@@ -561,6 +597,29 @@ public partial class RecipeUI : CanvasLayer
         {
             RefreshRecipeList();
             UpdateCraftingStatus();
+        }
+    }
+
+    private void OnTitleBarInput(InputEvent @event)
+    {
+        if (@event is InputEventMouseButton mouseButton)
+        {
+            if (mouseButton.ButtonIndex == MouseButton.Left)
+            {
+                if (mouseButton.Pressed)
+                {
+                    _isDragging = true;
+                    _dragOffset = _panel.Position - mouseButton.GlobalPosition;
+                }
+                else
+                {
+                    _isDragging = false;
+                }
+            }
+        }
+        else if (@event is InputEventMouseMotion mouseMotion && _isDragging)
+        {
+            _panel.Position = mouseMotion.GlobalPosition + _dragOffset;
         }
     }
 

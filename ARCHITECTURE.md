@@ -6,7 +6,7 @@ This document describes the technical architecture for Space Factory, built in G
 
 > **Note:** The codebase was converted from GDScript to C# for performance reasons. All scripts are now in `scripts/csharp/`.
 
-## Implementation Status (Phase 3 In Progress)
+## Implementation Status (Phase 3 Mostly Complete)
 
 ### Implemented Files - Core (C#)
 | File | Status | Notes |
@@ -38,17 +38,18 @@ This document describes the technical architecture for Space Factory, built in G
 | `scripts/csharp/ConveyorBelt.cs` | Complete | 1x1 belt with item transport |
 | `scripts/csharp/Inserter.cs` | Complete | 1x1 item transfer with swing |
 | `scripts/csharp/Lab.cs` | Complete | 2x2 research building, consumes science packs |
-| `scripts/csharp/Assembler.cs` | Complete | 2x2 auto-crafter with tier system |
+| `scripts/csharp/Assembler.cs` | Complete | 2x2 auto-crafter with tier system, recipe requirements display |
+| `scripts/csharp/Collector.cs` | Complete | 1x1 debris collector with animated arm, 4 output slots |
 
 ### Implemented Files - UI
 | File | Status | Notes |
 |------|--------|-------|
-| `scripts/csharp/HUD.cs` | Complete | Hotbar, resource display |
-| `scripts/csharp/InventoryUI.cs` | Complete | 40-slot inventory grid |
-| `scripts/csharp/BuildMenuUI.cs` | Complete | Building selection by category |
-| `scripts/csharp/BuildingUI.cs` | Complete | Building interaction panel, shift+click stack transfer |
+| `scripts/csharp/HUD.cs` | Complete | Toolbar, notifications, craft queue display |
+| `scripts/csharp/InventoryUI.cs` | Complete | 40-slot inventory grid, draggable |
+| `scripts/csharp/BuildMenuUI.cs` | Complete | Building selection by category (includes Collection, Foundation) |
+| `scripts/csharp/BuildingUI.cs` | Complete | Building interaction panel, draggable, recipe requirements display |
 | `scripts/csharp/ResearchUI.cs` | Complete | Tech tree panel, toggle with 'T' |
-| `scripts/csharp/RecipeUI.cs` | Complete | Hand-crafting panel, toggle with 'C' |
+| `scripts/csharp/RecipeUI.cs` | Complete | Hand-crafting panel, toggle with 'C', x5 batch, recipe list |
 
 ### Implemented Files - Resources
 | File | Status | Notes |
@@ -64,12 +65,13 @@ This document describes the technical architecture for Space Factory, built in G
 | `scripts/csharp/Main.cs` | Complete | Main scene controller |
 | `scenes/game/Main.tscn` | Complete | Main game scene |
 
-### Not Yet Implemented (Phase 3+)
+### Not Yet Implemented (Phase 4+)
 | File | Phase | Notes |
 |------|-------|-------|
 | `scripts/csharp/SaveManager.cs` | Phase 5 | Save/load system |
-| `scripts/csharp/DebrisCollector.cs` | Phase 3 | Auto debris collection |
-| `scripts/csharp/AssemblerUI.cs` | Phase 3 | Recipe selection for assemblers |
+| `scripts/csharp/FastInserter.cs` | Phase 3 | Faster item transfer |
+| `scripts/csharp/UndergroundBelt.cs` | Phase 3 | Belt under obstacles |
+| `scripts/csharp/Splitter.cs` | Phase 3 | Belt lane splitting |
 
 ---
 
@@ -168,6 +170,7 @@ Responsibilities:
 - Recipe validation
 - Crafting execution
 - Queue management
+- Recursive crafting (auto-craft intermediates)
 
 ```csharp
 // Signals
@@ -177,9 +180,12 @@ Responsibilities:
 [Signal] public delegate void QueueChangedEventHandler();
 
 // Methods
-public bool CanCraft(RecipeResource recipe)
+public bool CanCraft(RecipeResource recipe, int count = 1)
+public bool CanCraftWithIntermediates(RecipeResource recipe, int count = 1)
 public bool QueueCraft(RecipeResource recipe, int count = 1)
+public bool QueueCraftWithIntermediates(RecipeResource recipe, int count = 1)
 public RecipeResource GetRecipe(string recipeId)
+public RecipeResource FindRecipeForItem(string itemId)
 public Array<RecipeResource> GetAllRecipes()
 ```
 
@@ -395,7 +401,8 @@ public partial class DebrisEntity : Area2D
 - **ConveyorBelt** - 1x1 item transport, auto-connects to adjacent belts
 - **Inserter** - 1x1 item transfer with swing animation, long variant available
 - **Lab** - 2x2 research building, consumes science packs for research progress
-- **Assembler** - 2x2 auto-crafter with tier system (Mk1/Mk2), 4 input slots + 1 output
+- **Assembler** - 2x2 auto-crafter with tier system (Mk1/Mk2), 4 input slots + 1 output, recipe requirements display
+- **Collector** - 1x1 debris collector with animated robotic arm, 4 output slots, state machine (Idle/Extending/Grabbing/Retracting)
 
 ---
 
@@ -481,6 +488,7 @@ GameManager.Instance.GameTick += OnGameTick;
 - `build_menu` -> B
 - `research` -> T (opens Research UI)
 - `crafting` -> C (opens Crafting UI)
+- `recipe_list` -> R (opens Recipe list / rotates in build mode)
 
 ---
 
@@ -512,7 +520,8 @@ scripts/csharp/
 ├── Inserter.cs                 ✓ Inserter building
 ├── Lab.cs                      ✓ Lab building (research)
 ├── Assembler.cs                ✓ Assembler building (auto-craft)
-├── HUD.cs                      ✓ HUD UI
+├── Collector.cs                ✓ Debris collector (animated arm, 4 slots)
+├── HUD.cs                      ✓ HUD UI (toolbar, notifications, craft queue)
 ├── InventoryUI.cs              ✓ Inventory UI
 ├── BuildMenuUI.cs              ✓ Build menu UI
 ├── BuildingUI.cs               ✓ Building interaction UI

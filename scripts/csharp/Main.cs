@@ -93,8 +93,21 @@ public partial class Main : Node2D
         GD.Print("[Main] SetupStation complete");
         SetupBuildingSystem();
         GD.Print("[Main] SetupBuildingSystem complete");
+        ConnectHudSignals();
+        GD.Print("[Main] ConnectHudSignals complete");
         StartGame();
         GD.Print("[Main] StartGame complete - Game ready!");
+    }
+
+    private void ConnectHudSignals()
+    {
+        if (Hud == null)
+            return;
+
+        Hud.ToggleInventory += () => InventoryUi?.ShowInventory();
+        Hud.ToggleBuildMenu += () => BuildMenuUi?.Toggle();
+        Hud.ToggleCrafting += () => RecipeUi?.Toggle();
+        Hud.ToggleResearch += () => ResearchUi?.Toggle();
     }
 
     private void SetupCamera()
@@ -455,7 +468,7 @@ public partial class Main : Node2D
             return;
 
         // Open building UI for buildings with inventory
-        if (building is SmallChest or StoneFurnace or Lab or Assembler)
+        if (building is SmallChest or StoneFurnace or Lab or Assembler or Collector)
         {
             BuildingUi?.OpenForBuilding(building);
         }
@@ -473,17 +486,65 @@ public partial class Main : Node2D
 
     private bool IsUiBlocking()
     {
-        // Check if any UI panel is open that should block world clicks
+        // Check if mouse is over any visible UI panel
+        var mousePos = GetViewport().GetMousePosition();
+
+        // Check each UI panel to see if the mouse is over it
         if (InventoryUi != null && InventoryUi.Visible && InventoryUi.IsOpen)
-            return true;
+        {
+            if (IsMouseOverControl(InventoryUi, mousePos))
+                return true;
+        }
         if (BuildingUi != null && BuildingUi.Visible && BuildingUi.IsOpen)
-            return true;
+        {
+            if (IsMouseOverControl(BuildingUi, mousePos))
+                return true;
+        }
         if (BuildMenuUi != null && BuildMenuUi.Visible)
-            return true;
+        {
+            if (IsMouseOverControl(BuildMenuUi, mousePos))
+                return true;
+        }
         if (ResearchUi != null && ResearchUi.Visible)
-            return true;
+        {
+            if (IsMouseOverControl(ResearchUi, mousePos))
+                return true;
+        }
         if (RecipeUi != null && RecipeUi.Visible)
-            return true;
+        {
+            if (IsMouseOverControl(RecipeUi, mousePos))
+                return true;
+        }
+        // Check HUD toolbar
+        if (Hud != null)
+        {
+            var toolbar = Hud.GetNodeOrNull<PanelContainer>("ToolbarPanel");
+            if (toolbar != null && IsMouseOverControl(toolbar, mousePos))
+                return true;
+        }
         return false;
+    }
+
+    private bool IsMouseOverControl(CanvasLayer layer, Vector2 mousePos)
+    {
+        // For CanvasLayer, we need to find the panel child and check its rect
+        foreach (var child in layer.GetChildren())
+        {
+            if (child is Control control && control.Visible)
+            {
+                var rect = control.GetGlobalRect();
+                if (rect.HasPoint(mousePos))
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    private bool IsMouseOverControl(Control control, Vector2 mousePos)
+    {
+        if (!control.Visible)
+            return false;
+        var rect = control.GetGlobalRect();
+        return rect.HasPoint(mousePos);
     }
 }

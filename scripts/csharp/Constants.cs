@@ -17,7 +17,7 @@ public static class Constants
     public const int DefaultStackSize = 50;
 
     // Debris spawning
-    public const float DebrisBaseSpawnRate = 3.0f;
+    public const float DebrisBaseSpawnRate = 0.3f;
     public const float DebrisSpawnVariance = 1.0f;
     public const float DebrisMinSpeed = 20.0f;
     public const float DebrisMaxSpeed = 50.0f;
@@ -38,6 +38,12 @@ public static class Constants
     public const float BeltSpeedTier3 = 3.0f;
     public const float InserterSwingTime = 0.8f;
     public const float FastInserterSwingTime = 0.4f;
+
+    // Collectors
+    public const int CollectorTier1Range = 2;  // tiles
+    public const int CollectorTier2Range = 4;  // tiles
+    public const float CollectorArmSpeed = 2.0f;  // full extend/retract per second
+    public const float CollectorCooldown = 1.0f;  // seconds between collections
 
     // Power
     public const float SolarPanelOutput = 60.0f;

@@ -47,6 +47,10 @@ public partial class BuildingUI : CanvasLayer
     private VBoxContainer _recipeList;
     private bool _recipePanelOpen = false;
 
+    // Window dragging
+    private bool _isDragging = false;
+    private Vector2 _dragOffset = Vector2.Zero;
+
     public override void _Ready()
     {
         Layer = 18;
@@ -110,6 +114,9 @@ public partial class BuildingUI : CanvasLayer
         };
         _closeButton.Pressed += HideUI;
         titleBar.AddChild(_closeButton);
+
+        // Make title bar draggable
+        titleBar.GuiInput += OnTitleBarInput;
 
         // Separator
         contentVbox.AddChild(new HSeparator());
@@ -363,6 +370,29 @@ public partial class BuildingUI : CanvasLayer
         }
     }
 
+    private void OnTitleBarInput(InputEvent @event)
+    {
+        if (@event is InputEventMouseButton mouseButton)
+        {
+            if (mouseButton.ButtonIndex == MouseButton.Left)
+            {
+                if (mouseButton.Pressed)
+                {
+                    _isDragging = true;
+                    _dragOffset = _panel.Position - mouseButton.GlobalPosition;
+                }
+                else
+                {
+                    _isDragging = false;
+                }
+            }
+        }
+        else if (@event is InputEventMouseMotion mouseMotion && _isDragging)
+        {
+            _panel.Position = mouseMotion.GlobalPosition + _dragOffset;
+        }
+    }
+
     public void OpenForBuilding(Node2D building)
     {
         _currentBuilding = building;
@@ -414,6 +444,11 @@ public partial class BuildingUI : CanvasLayer
         {
             SetupAssemblerUI();
             _progressContainer.Visible = true;
+        }
+        else if (_currentBuilding is Collector)
+        {
+            SetupCollectorUI();
+            _progressContainer.Visible = false;
         }
         else
         {
@@ -559,6 +594,9 @@ public partial class BuildingUI : CanvasLayer
         _buildingSlotsContainer.AddChild(infoLabel);
     }
 
+    // Recipe requirements display
+    private VBoxContainer _recipeRequirementsContainer;
+
     private void SetupAssemblerUI()
     {
         var assembler = _currentBuilding as Assembler;
@@ -582,6 +620,14 @@ public partial class BuildingUI : CanvasLayer
         };
         _recipeSelectButton.Pressed += OnRecipeSelectPressed;
         recipeSection.AddChild(_recipeSelectButton);
+
+        // Recipe requirements display (shows needed/missing items)
+        _recipeRequirementsContainer = new VBoxContainer
+        {
+            Name = "RecipeRequirements"
+        };
+        _recipeRequirementsContainer.AddThemeConstantOverride("separation", 4);
+        _buildingSlotsContainer.AddChild(_recipeRequirementsContainer);
 
         // Input/Output layout
         var ioLayout = new HBoxContainer();
@@ -785,6 +831,72 @@ public partial class BuildingUI : CanvasLayer
         UpdateBuildingDisplay();
     }
 
+    private void SetupCollectorUI()
+    {
+        var collector = _currentBuilding as Collector;
+        if (collector == null)
+            return;
+
+        // Status section
+        var statusSection = new VBoxContainer();
+        statusSection.AddThemeConstantOverride("separation", 8);
+        _buildingSlotsContainer.AddChild(statusSection);
+
+        var tierLabel = new Label
+        {
+            Text = $"Tier {collector.Tier} - Range: {collector.CollectionRange} tiles",
+            HorizontalAlignment = HorizontalAlignment.Center
+        };
+        tierLabel.AddThemeColorOverride("font_color", Constants.UiHighlight);
+        statusSection.AddChild(tierLabel);
+
+        // State label (will be updated)
+        var stateLabel = new Label
+        {
+            Name = "StateLabel",
+            Text = collector.GetStateDescription(),
+            HorizontalAlignment = HorizontalAlignment.Center
+        };
+        stateLabel.AddThemeColorOverride("font_color", Constants.UiTextDim);
+        statusSection.AddChild(stateLabel);
+
+        // Output section
+        var outputVbox = new VBoxContainer();
+        outputVbox.AddThemeConstantOverride("separation", 4);
+        _buildingSlotsContainer.AddChild(outputVbox);
+
+        var outputLabel = new Label
+        {
+            Text = "Collected Items (4 slots)",
+            HorizontalAlignment = HorizontalAlignment.Center
+        };
+        outputLabel.AddThemeColorOverride("font_color", Constants.UiTextDim);
+        outputVbox.AddChild(outputLabel);
+
+        // Create 4 output slots in a row
+        var slotsRow = new HBoxContainer();
+        slotsRow.AddThemeConstantOverride("separation", 4);
+        outputVbox.AddChild(slotsRow);
+
+        for (int i = 0; i < 4; i++)
+        {
+            var outputSlot = CreateSlot(i, false);
+            outputSlot.CustomMinimumSize = new Vector2(44, 44);
+            slotsRow.AddChild(outputSlot);
+            _buildingSlots.Add(outputSlot);
+        }
+
+        // Info label
+        var infoLabel = new Label
+        {
+            Text = "Use inserters to extract items. Collector stops when full.",
+            HorizontalAlignment = HorizontalAlignment.Center
+        };
+        infoLabel.AddThemeColorOverride("font_color", Constants.UiTextDim);
+        infoLabel.AddThemeFontSizeOverride("font_size", 11);
+        _buildingSlotsContainer.AddChild(infoLabel);
+    }
+
     private void SetupGenericUI()
     {
         if (_currentBuilding is not BuildingEntity entity)
@@ -823,6 +935,8 @@ public partial class BuildingUI : CanvasLayer
             UpdateLabDisplay(lab);
         else if (_currentBuilding is Assembler assembler)
             UpdateAssemblerDisplay(assembler);
+        else if (_currentBuilding is Collector collector)
+            UpdateCollectorDisplay(collector);
         else if (_currentBuilding is BuildingEntity entity)
             UpdateGenericDisplay(entity);
     }
@@ -911,6 +1025,164 @@ public partial class BuildingUI : CanvasLayer
         if (_recipeSelectButton != null)
         {
             _recipeSelectButton.Text = assembler.CurrentRecipe?.Name ?? "Select Recipe";
+        }
+
+        // Update recipe requirements display
+        UpdateRecipeRequirementsDisplay(assembler);
+    }
+
+    private void UpdateRecipeRequirementsDisplay(Assembler assembler)
+    {
+        if (_recipeRequirementsContainer == null)
+            return;
+
+        // Clear existing
+        foreach (var child in _recipeRequirementsContainer.GetChildren())
+        {
+            child.QueueFree();
+        }
+
+        if (assembler.CurrentRecipe == null)
+        {
+            var noRecipeLabel = new Label
+            {
+                Text = "No recipe selected",
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+            noRecipeLabel.AddThemeFontSizeOverride("font_size", 11);
+            noRecipeLabel.AddThemeColorOverride("font_color", Constants.UiTextDim);
+            _recipeRequirementsContainer.AddChild(noRecipeLabel);
+            return;
+        }
+
+        // Show recipe requirements
+        var titleLabel = new Label
+        {
+            Text = "Required:",
+            HorizontalAlignment = HorizontalAlignment.Left
+        };
+        titleLabel.AddThemeFontSizeOverride("font_size", 11);
+        titleLabel.AddThemeColorOverride("font_color", Constants.UiTextDim);
+        _recipeRequirementsContainer.AddChild(titleLabel);
+
+        var ingredientsRow = new HBoxContainer();
+        ingredientsRow.AddThemeConstantOverride("separation", 12);
+        _recipeRequirementsContainer.AddChild(ingredientsRow);
+
+        var ingredients = assembler.CurrentRecipe.GetIngredients();
+        foreach (var ing in ingredients)
+        {
+            string itemId = ing["item_id"].AsString();
+            int required = ing["count"].AsInt32();
+            var item = InventoryManager.Instance?.GetItem(itemId);
+
+            if (item == null)
+                continue;
+
+            // Count how many we have in assembler input slots
+            int available = 0;
+            foreach (var slot in assembler.InputSlots)
+            {
+                if (!slot.IsEmpty() && slot.Item?.Id == itemId)
+                    available += slot.Count;
+            }
+
+            // Create ingredient display
+            var ingContainer = new HBoxContainer();
+            ingContainer.AddThemeConstantOverride("separation", 4);
+            ingredientsRow.AddChild(ingContainer);
+
+            // Icon
+            var icon = new TextureRect
+            {
+                CustomMinimumSize = new Vector2(20, 20),
+                StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
+                Texture = GetItemTexture(item)
+            };
+            ingContainer.AddChild(icon);
+
+            // Count label with color coding
+            bool hasEnough = available >= required;
+            var countLabel = new Label
+            {
+                Text = $"{available}/{required}"
+            };
+            countLabel.AddThemeFontSizeOverride("font_size", 12);
+            countLabel.AddThemeColorOverride("font_color", hasEnough
+                ? new Color(0.4f, 0.8f, 0.4f)  // Green when satisfied
+                : new Color(1.0f, 0.4f, 0.4f)); // Red when missing
+            ingContainer.AddChild(countLabel);
+        }
+
+        // Show output info
+        var results = assembler.CurrentRecipe.GetResults();
+        if (results.Count > 0)
+        {
+            var result = results[0];
+            string resultId = result["item_id"].AsString();
+            int resultCount = result["count"].AsInt32();
+            var resultItem = InventoryManager.Instance?.GetItem(resultId);
+
+            if (resultItem != null)
+            {
+                var outputRow = new HBoxContainer();
+                outputRow.AddThemeConstantOverride("separation", 4);
+                _recipeRequirementsContainer.AddChild(outputRow);
+
+                var outputLabel = new Label { Text = "Output:" };
+                outputLabel.AddThemeFontSizeOverride("font_size", 11);
+                outputLabel.AddThemeColorOverride("font_color", Constants.UiTextDim);
+                outputRow.AddChild(outputLabel);
+
+                var outputIcon = new TextureRect
+                {
+                    CustomMinimumSize = new Vector2(18, 18),
+                    StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
+                    Texture = GetItemTexture(resultItem)
+                };
+                outputRow.AddChild(outputIcon);
+
+                var outputName = new Label { Text = $"{resultItem.Name} x{resultCount}" };
+                outputName.AddThemeFontSizeOverride("font_size", 11);
+                outputName.AddThemeColorOverride("font_color", new Color(0.7f, 0.7f, 0.9f));
+                outputRow.AddChild(outputName);
+            }
+        }
+    }
+
+    private void UpdateCollectorDisplay(Collector collector)
+    {
+        // Update all 4 output slots
+        for (int i = 0; i < _buildingSlots.Count && i < 4; i++)
+        {
+            UpdateSlotDisplay(_buildingSlots[i], collector.OutputSlots[i]);
+        }
+
+        // Update state label
+        var stateLabel = _buildingSlotsContainer.GetNodeOrNull<Label>("StateLabel");
+        if (stateLabel == null)
+        {
+            // Try to find it in child containers
+            foreach (var child in _buildingSlotsContainer.GetChildren())
+            {
+                if (child is VBoxContainer vbox)
+                {
+                    stateLabel = vbox.GetNodeOrNull<Label>("StateLabel");
+                    if (stateLabel != null)
+                        break;
+                }
+            }
+        }
+
+        if (stateLabel != null)
+        {
+            string state = collector.GetStateDescription();
+            // Add "FULL" indicator if all slots are full
+            if (collector.GetTotalItemCount() >= 4 * Constants.DefaultStackSize)
+            {
+                state = "FULL - Extract items!";
+            }
+            stateLabel.Text = state;
         }
     }
 
@@ -1148,6 +1420,15 @@ public partial class BuildingUI : CanvasLayer
         else if (_currentBuilding is Assembler assembler)
         {
             sourceStack = assembler.GetSlot(slotIndex);
+            if (sourceStack != null && !sourceStack.IsEmpty())
+            {
+                item = sourceStack.Item;
+                availableCount = sourceStack.Count;
+            }
+        }
+        else if (_currentBuilding is Collector collector)
+        {
+            sourceStack = collector.GetSlot(slotIndex);
             if (sourceStack != null && !sourceStack.IsEmpty())
             {
                 item = sourceStack.Item;

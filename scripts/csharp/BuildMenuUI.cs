@@ -40,6 +40,12 @@ public partial class BuildMenuUI : CanvasLayer
     /// </summary>
     private readonly Array<Button> _buildingButtons = new();
 
+    /// <summary>
+    /// Dragging state
+    /// </summary>
+    private bool _isDragging = false;
+    private Vector2 _dragOffset = Vector2.Zero;
+
     public override void _Ready()
     {
         SetupUI();
@@ -92,14 +98,30 @@ public partial class BuildMenuUI : CanvasLayer
         vbox.AddThemeConstantOverride("separation", 10);
         margin.AddChild(vbox);
 
-        // Title
+        // Title bar with close button (draggable)
+        var titleBar = new HBoxContainer { Name = "TitleBar" };
+        vbox.AddChild(titleBar);
+
         var title = new Label
         {
-            Text = "Build Menu (B)",
-            HorizontalAlignment = HorizontalAlignment.Center
+            Text = "Build Menu",
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill
         };
         title.AddThemeFontSizeOverride("font_size", 18);
-        vbox.AddChild(title);
+        titleBar.AddChild(title);
+
+        var closeBtn = new Button { Text = "X", CustomMinimumSize = new Vector2(28, 28) };
+        var closeBtnStyle = new StyleBoxFlat { BgColor = new Color(0.4f, 0.2f, 0.2f) };
+        closeBtnStyle.SetCornerRadiusAll(4);
+        closeBtn.AddThemeStyleboxOverride("normal", closeBtnStyle);
+        var closeBtnHover = new StyleBoxFlat { BgColor = new Color(0.6f, 0.3f, 0.3f) };
+        closeBtnHover.SetCornerRadiusAll(4);
+        closeBtn.AddThemeStyleboxOverride("hover", closeBtnHover);
+        closeBtn.Pressed += () => Visible = false;
+        titleBar.AddChild(closeBtn);
+
+        // Make title bar draggable
+        titleBar.GuiInput += OnTitleBarInput;
 
         // Categories
         CategoriesContainer = new HBoxContainer { Name = "Categories" };
@@ -159,8 +181,10 @@ public partial class BuildMenuUI : CanvasLayer
             Enums.BuildingCategory.Processing,
             Enums.BuildingCategory.Storage,
             Enums.BuildingCategory.Transport,
+            Enums.BuildingCategory.Collection,
             Enums.BuildingCategory.Power,
-            Enums.BuildingCategory.Research
+            Enums.BuildingCategory.Research,
+            Enums.BuildingCategory.Foundation
         };
 
         foreach (var category in categoriesToShow)
@@ -397,6 +421,29 @@ public partial class BuildMenuUI : CanvasLayer
         if (Visible)
         {
             UpdateBuildingsDisplay();
+        }
+    }
+
+    private void OnTitleBarInput(InputEvent @event)
+    {
+        if (@event is InputEventMouseButton mouseButton)
+        {
+            if (mouseButton.ButtonIndex == MouseButton.Left)
+            {
+                if (mouseButton.Pressed)
+                {
+                    _isDragging = true;
+                    _dragOffset = Panel.Position - mouseButton.GlobalPosition;
+                }
+                else
+                {
+                    _isDragging = false;
+                }
+            }
+        }
+        else if (@event is InputEventMouseMotion mouseMotion && _isDragging)
+        {
+            Panel.Position = mouseMotion.GlobalPosition + _dragOffset;
         }
     }
 

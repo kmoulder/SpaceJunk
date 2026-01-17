@@ -56,7 +56,7 @@ public partial class DebrisManager : Node
         { "iron_asteroid", 30 },
         { "copper_asteroid", 25 },
         { "stone_asteroid", 20 },
-        { "coal_asteroid", 15 },
+        { "coal_asteroid", 30 },
         { "scrap_metal", 20 },
         { "ice_chunk", 10 }
     };
@@ -458,5 +458,53 @@ public partial class DebrisManager : Node
         {
             _debrisWeights[type] = weight;
         }
+    }
+
+    /// <summary>
+    /// Get all debris within a specified range of a world position
+    /// </summary>
+    public Array<Node2D> GetDebrisInRange(Vector2 worldPosition, float range)
+    {
+        var result = new Array<Node2D>();
+        float rangeSq = range * range;
+
+        foreach (var debris in _activeDebris)
+        {
+            if (!IsInstanceValid(debris))
+                continue;
+
+            float distSq = worldPosition.DistanceSquaredTo(debris.GlobalPosition);
+            if (distSq <= rangeSq)
+            {
+                result.Add(debris);
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Get the nearest debris to a world position within optional max range
+    /// </summary>
+    public Node2D GetNearestDebris(Vector2 worldPosition, float maxRange = -1.0f)
+    {
+        Node2D nearest = null;
+        float nearestDistSq = float.MaxValue;
+        float maxRangeSq = maxRange > 0 ? maxRange * maxRange : float.MaxValue;
+
+        foreach (var debris in _activeDebris)
+        {
+            if (!IsInstanceValid(debris))
+                continue;
+
+            float distSq = worldPosition.DistanceSquaredTo(debris.GlobalPosition);
+            if (distSq < nearestDistSq && distSq <= maxRangeSq)
+            {
+                nearestDistSq = distSq;
+                nearest = debris;
+            }
+        }
+
+        return nearest;
     }
 }

@@ -45,6 +45,12 @@ public partial class ResearchUI : CanvasLayer
     /// </summary>
     private readonly Dictionary<string, Button> _techButtons = new();
 
+    /// <summary>
+    /// Dragging state
+    /// </summary>
+    private bool _isDragging = false;
+    private Vector2 _dragOffset = Vector2.Zero;
+
     public override void _Ready()
     {
         CreateUIStructure();
@@ -106,6 +112,9 @@ public partial class ResearchUI : CanvasLayer
         closeBtn.AddThemeStyleboxOverride("hover", closeBtnHover);
         closeBtn.Pressed += () => Visible = false;
         titleBar.AddChild(closeBtn);
+
+        // Make title bar draggable
+        titleBar.GuiInput += OnTitleBarInput;
 
         // Hint label
         var hintLabel = new Label
@@ -538,6 +547,29 @@ public partial class ResearchUI : CanvasLayer
         {
             RefreshTechList();
             UpdateCurrentResearchDisplay();
+        }
+    }
+
+    private void OnTitleBarInput(InputEvent @event)
+    {
+        if (@event is InputEventMouseButton mouseButton)
+        {
+            if (mouseButton.ButtonIndex == MouseButton.Left)
+            {
+                if (mouseButton.Pressed)
+                {
+                    _isDragging = true;
+                    _dragOffset = _panel.Position - mouseButton.GlobalPosition;
+                }
+                else
+                {
+                    _isDragging = false;
+                }
+            }
+        }
+        else if (@event is InputEventMouseMotion mouseMotion && _isDragging)
+        {
+            _panel.Position = mouseMotion.GlobalPosition + _dragOffset;
         }
     }
 
